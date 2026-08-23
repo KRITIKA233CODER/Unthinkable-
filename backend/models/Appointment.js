@@ -21,12 +21,15 @@ const appointmentSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['Scheduled', 'Completed', 'Cancelled'],
+    enum: ['Held', 'Scheduled', 'Completed', 'Cancelled'],
     default: 'Scheduled',
+  },
+  holdExpiresAt: {
+    type: Date,
   },
   symptoms: {
     type: String,
-    required: true,
+    default: '',
   },
   preVisitSummary: {
     urgencyLevel: { type: String, enum: ['Low', 'Medium', 'High'] },
@@ -45,8 +48,10 @@ const appointmentSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // Compound index to prevent double booking.
-// The combination of doctor, date, and timeSlot must be unique.
 appointmentSchema.index({ doctor: 1, date: 1, timeSlot: 1 }, { unique: true });
+
+// TTL index to automatically clean up expired holds from MongoDB
+appointmentSchema.index({ holdExpiresAt: 1 }, { expireAfterSeconds: 0 });
 
 const Appointment = mongoose.model('Appointment', appointmentSchema);
 module.exports = Appointment;

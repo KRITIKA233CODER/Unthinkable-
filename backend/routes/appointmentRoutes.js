@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const {
+  holdSlot,
   bookAppointment,
   cancelAppointment,
   rescheduleAppointment,
@@ -9,7 +10,10 @@ const {
 } = require('../controllers/appointmentController');
 const { protect, authorize } = require('../middleware/authMiddleware');
 
-// Patient books an appointment
+// Patient holds an appointment slot temporarily (5 minutes)
+router.post('/hold', protect, authorize('patient'), holdSlot);
+
+// Patient confirms / books an appointment
 router.post('/book', protect, authorize('patient'), bookAppointment);
 
 // Cancel an appointment (patient or doctor)

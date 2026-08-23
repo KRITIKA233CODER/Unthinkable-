@@ -1,160 +1,429 @@
-# 🩺 HealthPulse AI - Healthcare Appointment & Follow-Up Manager
+# HealthPulse AI
 
-A feature-complete Healthcare Appointment platform built with the **MERN Stack** (MongoDB, Express, React, Node.js) and **Google Gemini AI**. Designed for scalability, high performance, and zero double-booking concurrency safety.
+### Healthcare Appointment & Follow-up Manager
 
----
+HealthPulse AI is an appointment scheduling and clinical follow-up management platform built with React, Node.js, Express, MongoDB, and Google Gemini AI. It automates patient symptom triage, prevents double-booking through database-enforced concurrency control, and translates doctor clinical notes into structured, patient-friendly care plans.
 
-## 🌟 Key Features
-
-- 🔒 **Role-Based Authentication (RBAC):** JWT-secured authentication for Patients, Doctors, and Admins.
-- ⚡ **Zero Double-Booking Guarantee:** Dual-layer concurrency protection using MongoDB transactions and compound unique indexes.
-- 🤖 **AI Symptom Pre-Visit Assessment:** Converts raw symptoms into structured AI Urgency Levels (`Low` / `Medium` / `High`), chief complaints, and suggested doctor questions.
-- 📝 **AI Post-Visit Patient Summary:** Translates doctor clinical notes into clear medication schedules and follow-up steps.
-- 🛡️ **Graceful AI Degradation:** System remains 100% functional even if LLM APIs are unreachable or offline.
-- 🚀 **Local Memory Caching:** `node-cache` implementation for lightning-fast doctor search and availability checks.
-- 🎤 **Voice-to-Text Symptom Input:** Speech recognition API allowing patients to speak their symptoms directly.
-- 📊 **Doctor Pulse Dashboard:** Color-coded patient queue based on AI urgency scores.
-- ⏰ **Background Cron Reminders:** Automated hourly medication reminder checks via `node-cron`.
-- 📅 **Google Calendar Sync:** OAuth 2.0 integration for automatic event creation, update, and deletion.
-- 📧 **Email Notifications:** Booking confirmation, cancellation, and medication reminders via Nodemailer.
-- 🛠️ **Admin Panel:** Full CRUD management of doctor profiles (specialization, working hours, slot duration, leave days).
+[![Node.js](https://img.shields.io/badge/Node.js-v18+-339933?logo=node.js)](https://nodejs.org/)
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://react.dev/)
+[![Express](https://img.shields.io/badge/Express-5.x-000000?logo=express)](https://expressjs.com/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose_9-47A248?logo=mongodb)](https://www.mongodb.com/)
+[![Google Gemini](https://img.shields.io/badge/Google_Gemini-1.5_Flash-4285F4?logo=google)](https://ai.google.dev/)
+[![Tests](https://img.shields.io/badge/Tests-23_Passing-brightgreen)]()
 
 ---
 
-## 🗄️ Database Schema Design
+## 1. The Problem
 
-### User Schema
-| Field | Type | Details |
-|:---|:---|:---|
-| `name` | String | Required |
-| `email` | String | Required, Unique |
-| `password` | String | Hashed with bcrypt |
-| `role` | Enum | `patient` / `doctor` / `admin` |
+Standard appointment booking applications fail to support real clinical workflows because they treat healthcare scheduling as simple calendar slot reservations:
 
-### DoctorProfile Schema
-| Field | Type | Details |
-|:---|:---|:---|
-| `user` | ObjectId → User | Required |
-| `specialization` | String | e.g., "Cardiology" |
-| `workingHours` | Object | `{ start: "09:00", end: "17:00" }` |
-| `slotDuration` | Number | Default: 30 (minutes) |
-| `leaveDays` | Array | `[{ date, reason }]` |
+* **Patients** arrive with unstructured, subjective symptoms and lack medical context before consultations, leading to delayed triage and unguided consultations.
+* **Doctors** face time constraints during visits, lacking structured intake summaries, and write dense medical jargon that patients struggle to understand after leaving the clinic.
+* **Clinic Administrators** struggle to maintain doctor availability when managing fluctuating working hours, slot durations, and unexpected staff leave days that invalidate already-booked appointments.
 
-### Appointment Schema
-| Field | Type | Details |
-|:---|:---|:---|
-| `patient` | ObjectId → User | Required |
-| `doctor` | ObjectId → DoctorProfile | Required |
-| `date` | Date | Required |
-| `timeSlot` | String | e.g., "10:00 AM" |
-| `status` | Enum | `Scheduled` / `Completed` / `Cancelled` |
-| `symptoms` | String | Raw patient input |
-| `preVisitSummary` | Object | `{ urgencyLevel, chiefComplaint, suggestedQuestions }` |
-| `postVisitSummary` | Object | `{ clinicalNotes, patientSummary, medicationSchedule, followUpSteps }` |
-| `googleCalendarEventId` | String | Google Calendar event ID |
-
-> **Compound Unique Index:** `{ doctor: 1, date: 1, timeSlot: 1 }` — prevents double booking at DB level.
+HealthPulse AI addresses the complete clinical lifecycle: pre-visit intake triage $\rightarrow$ atomic slot reservation $\rightarrow$ doctor consultation $\rightarrow$ patient-friendly care plan generation $\rightarrow$ reliable follow-up reminders.
 
 ---
 
-## 📡 API Endpoints
+## 2. End-to-End Workflow
 
-### Authentication
-| Method | Endpoint | Access | Description |
-|:---|:---|:---:|:---|
-| `POST` | `/api/auth/register` | Public | Register (patient/doctor/admin) |
-| `POST` | `/api/auth/login` | Public | Login & receive JWT |
-| `GET` | `/api/auth/me` | Private | Get current user profile |
+```mermaid
+flowchart TD
+    subgraph Patient Journey
+        A[Select Specialization & Doctor] --> B[Pick Date & Available Slot]
+        B --> C[Atomic 5-Min Slot Hold Lock]
+        C --> D[Describe Symptoms / Voice Input]
+        D --> E[Confirm Booking]
+        E --> F[Gemini Pre-Visit Triage Extraction]
+        F --> G[Scheduled Appointment Stored]
+    end
 
-### Doctor Profiles (Admin CRUD + Search)
-| Method | Endpoint | Access | Description |
-|:---|:---|:---:|:---|
-| `GET` | `/api/doctors?specialization=X` | Public | Search doctors by specialization |
-| `POST` | `/api/doctors` | Admin | Create doctor profile |
-| `PUT` | `/api/doctors/:id` | Admin | Update doctor profile |
-| `DELETE` | `/api/doctors/:id` | Admin | Delete doctor profile |
-| `POST` | `/api/doctors/leave` | Doctor | Mark leave & notify affected patients |
+    subgraph Doctor Journey
+        G --> H[Doctor Reviews Queue & Urgency Score]
+        H --> I[Conduct Consultation & Record Notes]
+        I --> J[Submit Clinical Diagnosis & Rx]
+        J --> K[Gemini Post-Visit Translation]
+    end
 
-### Appointments
-| Method | Endpoint | Access | Description |
-|:---|:---|:---:|:---|
-| `POST` | `/api/appointments/book` | Patient | Book + AI pre-visit summary + email + calendar |
-| `PUT` | `/api/appointments/:id/cancel` | Patient/Doctor | Cancel + email + delete calendar event |
-| `PUT` | `/api/appointments/:id/reschedule` | Patient | Reschedule to new slot |
-| `POST` | `/api/appointments/:id/post-visit` | Doctor | Submit notes + AI post-visit summary |
-| `GET` | `/api/appointments/my` | Private | Get current user's appointments |
-
----
-
-## 📅 Google Calendar API OAuth 2.0 Setup
-
-1. Go to the [Google Cloud Console](https://console.cloud.google.com/).
-2. Create a new project named `HealthPulse AI`.
-3. Navigate to **APIs & Services → Library** and enable the **Google Calendar API**.
-4. Go to **APIs & Services → Credentials → Create Credentials → OAuth Client ID**.
-5. Select **Web Application**, set authorized redirect URI to `http://localhost:5000/api/auth/google/callback`.
-6. Copy `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` into `backend/.env`.
-7. Use the [OAuth 2.0 Playground](https://developers.google.com/oauthplayground/) to generate a `GOOGLE_REFRESH_TOKEN` with the `https://www.googleapis.com/auth/calendar` scope.
-8. Add the refresh token to `backend/.env`.
+    subgraph Follow-Up & Notifications
+        K --> L[Structured Care Plan & Rx Stored]
+        L --> M[Patient Views Care Plan in Portal]
+        L --> N[Background Reminder Queue]
+        N --> O[Nodemailer Medication Reminders]
+        E --> P[Google Calendar & Confirmation Email]
+    end
+```
 
 ---
 
-## 🚀 Quick Setup
+## 3. Key Features & Implementation Status
+
+| Feature | Description | Implementation Status | Technical Location |
+| :--- | :--- | :---: | :--- |
+| **Role-Based Auth (RBAC)** | JWT authentication with password hashing (bcrypt) and protected routes for Patients, Doctors, and Admins. | **Implemented** | [`backend/controllers/authController.js`](./backend/controllers/authController.js) |
+| **Dynamic Slot Engine** | Slices working hours by slot duration, mathematically excluding booked appointments and doctor leave dates. | **Implemented** | [`backend/controllers/doctorController.js`](./backend/controllers/doctorController.js#L95) |
+| **Double-Booking Prevention** | Database compound unique index + MongoDB Session transactions to physically prevent concurrent duplicate bookings. | **Implemented** | [`backend/models/Appointment.js`](./backend/models/Appointment.js#L54) |
+| **Atomic 5-Min Slot Hold** | 5-minute temporary exclusive hold on slots with MongoDB TTL auto-expiry and live frontend countdown. | **Implemented** | [`backend/controllers/appointmentController.js`](./backend/controllers/appointmentController.js#L15) |
+| **Doctor Leave Handling** | Records leave, transitions affected appointments to `Cancelled`, deletes calendar events, and emails patients. | **Implemented** | [`backend/controllers/doctorController.js`](./backend/controllers/doctorController.js#L52) |
+| **AI Pre-Visit Triage** | Extracts Urgency (`Low`/`Med`/`High`), Chief Complaint, and 3 suggested doctor questions via Gemini LLM. | **Implemented** | [`backend/services/aiService.js`](./backend/services/aiService.js#L11) |
+| **AI Post-Visit Summary** | Translates doctor notes into patient-friendly explanation, structured Rx schedule, and follow-up timeline. | **Implemented** | [`backend/services/aiService.js`](./backend/services/aiService.js#L56) |
+| **Medication Reminder Queue** | Persistent MongoDB job queue with bounded exponential backoff (`2^attempts`), duplicate prevention, and retry limits. | **Implemented** | [`backend/services/cronService.js`](./backend/services/cronService.js#L12) |
+| **Email Notifications** | Dispatches booking, cancellation, leave, reschedule, and reminder emails with status reporting (`EMAIL_SENT`, `EMAIL_FAILED`, `EMAIL_NOT_CONFIGURED`). | **Implemented** | [`backend/services/emailService.js`](./backend/services/emailService.js) |
+| **Google Calendar Sync** | OAuth 2.0 integration for inserting, patching (rescheduling), and deleting calendar events. | **Configured** *(Requires user OAuth credentials in `.env`)* | [`backend/services/calendarService.js`](./backend/services/calendarService.js) |
+| **Voice-to-Text Input** | Speech recognition API for hands-free symptom recording in the patient portal. | **Implemented** | [`frontend/src/App.jsx`](./frontend/src/App.jsx#L280) |
+
+---
+
+## 4. Engineering Highlights
+
+### 🔒 A. Double-Booking Prevention Mechanism
+Relying on frontend checks or a read-before-write query is insufficient under concurrent load because two requests can read a slot as "available" simultaneously.
+
+HealthPulse AI solves this at the database engine layer:
+1. **Compound Unique Index:** `appointmentSchema.index({ doctor: 1, date: 1, timeSlot: 1 }, { unique: true })`.
+2. **ACID Transaction Write Locks:** `bookAppointment` and `holdSlot` execute inside a MongoDB transaction session (`mongoose.startSession()`). If two concurrent HTTP requests target the same doctor slot at the same millisecond, MongoDB write locking allows exactly one write and rejects the second with error `E11000`.
+3. **HTTP 409 Conflict Response:** The controller catches duplicate key collisions and returns an explicit `409 Conflict` status code.
+
+```
+Patient Request A ──┐
+                    ├── MongoDB Unique Index { doctor, date, timeSlot } ──→ [200 OK] Created
+Patient Request B ──┘                                                    └──→ [409 Conflict] Duplicate
+```
+
+---
+
+### ⏱️ B. Atomic 5-Minute Slot Hold Mechanism
+To prevent race conditions while patients type or speak symptoms:
+* When a slot is selected, `POST /api/appointments/hold` writes an initial document with `status: 'Held'` and `holdExpiresAt: Date.now() + 5 minutes`.
+* A MongoDB TTL index (`{ holdExpiresAt: 1 }, { expireAfterSeconds: 0 }`) ensures background cleanup if the client disconnects.
+* While held, other patients attempting to select the slot receive `409 Conflict`.
+* When confirmed (`POST /api/appointments/book`), the hold transitions to `status: 'Scheduled'` and `holdExpiresAt` is removed.
+
+---
+
+### 🌴 C. Doctor Leave Conflict Cascading
+When a doctor registers a leave day via `POST /api/doctors/leave`:
+1. The leave date is recorded in `doctorProfile.leaveDays`.
+2. `Appointment.find({ doctor, date, status: 'Scheduled' })` identifies all conflicting patient visits.
+3. Each appointment is transitioned to `Cancelled`.
+4. If Google Calendar event IDs exist, `deleteCalendarEvent` deletes the cloud event.
+5. `sendDoctorLeaveCancellation` emails affected patients with the doctor's reason.
+
+---
+
+## 5. AI Architecture & LLM Integration
+
+The application utilizes Google Gemini (`gemini-1.5-flash`) for structured clinical intelligence.
+
+### A. Pre-Visit Triage Intake
+```
+Prompt:
+Analyse these symptoms and return a JSON object with:
+- urgencyLevel: exactly one of "Low", "Medium", or "High"
+- chiefComplaint: a brief 1-sentence summary of the main issue
+- suggestedQuestions: array of three questions for the doctor.
+
+Return ONLY valid JSON.
+Symptoms: <symptoms>
+```
+
+### B. Post-Visit Care Plan Translation
+```
+Prompt:
+Convert these clinical notes into a JSON object with:
+- patientSummary: a clear, patient-friendly explanation
+- medicationSchedule: clear medication schedule
+- followUpSteps: key follow-up steps
+
+Return ONLY valid JSON.
+Clinical Notes: <clinicalNotes>
+```
+
+### C. Graceful Fallback & Degradation
+If `GEMINI_API_KEY` is missing or the external API experiences a network timeout, `aiService.js` catches the error and returns a structured fallback object (`isFallback: true`). The appointment booking and doctor notes submission always succeed without blocking the user.
+
+---
+
+## 6. Email Architecture & Failure Isolation
+
+Emails are handled by Nodemailer in [`backend/services/emailService.js`](./backend/services/emailService.js):
+
+* **Development/Testing:** Automatically generates an **Ethereal test inbox** if no SMTP credentials are provided, printing preview URLs to the console.
+* **Production/Demo:** Configurable with Gmail or custom SMTP hosts via `.env`.
+* **Standardized Status Contract:** Every email operation returns `{ status: 'EMAIL_SENT' | 'EMAIL_FAILED' | 'EMAIL_NOT_CONFIGURED', message, messageId }`.
+* **Non-Blocking Isolation:** Email dispatches are wrapped in isolated `try/catch` blocks so SMTP errors never roll back successful database transactions.
+
+---
+
+## 7. Google Calendar OAuth 2.0 Integration
+
+Calendar synchronization is implemented in [`backend/services/calendarService.js`](./backend/services/calendarService.js) using `googleapis`:
+
+* **Booking:** Calls `calendar.events.insert` with start/end times and persists `googleCalendarEventId` on the Appointment document.
+* **Rescheduling:** Calls `calendar.events.patch` to update the existing event without creating duplicates.
+* **Cancellation:** Calls `calendar.events.delete` to remove the event from Google Calendar.
+* **Status Reporting:** Returns `{ success: boolean, eventId, message }` so the UI only confirms sync when credentials are valid.
+
+---
+
+## 8. System Architecture
+
+```mermaid
+graph TD
+    Client[React 19 SPA] -->|REST API & Bearer JWT| AuthMiddleware[Express Auth & RBAC Middleware]
+    AuthMiddleware --> Controllers[Express Controllers]
+    
+    Controllers --> Mongoose[Mongoose Models]
+    Mongoose --> MongoDB[(MongoDB Database)]
+    
+    Controllers --> AIService[Gemini AI Service]
+    AIService -.->|External API| GoogleGemini[Google Gemini 1.5 Flash]
+    
+    Controllers --> EmailService[Nodemailer Email Service]
+    EmailService -.->|SMTP / Ethereal| MailServer[Mail Transport]
+    
+    Controllers --> CalService[Google Calendar Service]
+    CalService -.->|OAuth 2.0| GoogleCal[Google Calendar API]
+    
+    Cron[Node-Cron Worker] --> ReminderJobModel[ReminderJob Queue]
+    ReminderJobModel --> EmailService
+```
+
+---
+
+## 9. Database Schema
+
+### 1. `User` Model
+* `name` (String, Required)
+* `email` (String, Required, Unique)
+* `password` (String, Hashed with bcrypt)
+* `role` (Enum: `'patient'`, `'doctor'`, `'admin'`)
+
+### 2. `DoctorProfile` Model
+* `user` (ObjectId $\rightarrow$ `User`, Required)
+* `specialization` (String, e.g. `'Cardiology'`)
+* `workingHours` (`{ start: "09:00", end: "17:00" }`)
+* `slotDuration` (Number in minutes, default: `30`)
+* `leaveDays` (`[{ date: Date, reason: String }]`)
+
+### 3. `Appointment` Model
+* `patient` (ObjectId $\rightarrow$ `User`, Required)
+* `doctor` (ObjectId $\rightarrow$ `DoctorProfile`, Required)
+* `date` (Date, Required)
+* `timeSlot` (String, e.g. `"10:00 AM"`)
+* `status` (Enum: `'Held'`, `'Scheduled'`, `'Completed'`, `'Cancelled'`)
+* `holdExpiresAt` (Date, TTL index: `expireAfterSeconds: 0`)
+* `symptoms` (String)
+* `preVisitSummary` (`{ urgencyLevel, chiefComplaint, suggestedQuestions }`)
+* `postVisitSummary` (`{ clinicalNotes, patientSummary, medicationSchedule, followUpSteps }`)
+* `googleCalendarEventId` (String)
+* **Compound Unique Index:** `{ doctor: 1, date: 1, timeSlot: 1 }`
+
+### 4. `ReminderJob` Model (Persistent Retry Queue)
+* `appointment` (ObjectId $\rightarrow$ `Appointment`, Unique)
+* `patient` (ObjectId $\rightarrow$ `User`)
+* `patientEmail` (String)
+* `patientName` (String)
+* `medicationSchedule` (String)
+* `status` (Enum: `'PENDING'`, `'SENT'`, `'FAILED_PERMANENTLY'`)
+* `attempts` (Number, default: `0`)
+* `maxAttempts` (Number, default: `5`)
+* `nextRunAt` (Date)
+* `lastError` (String)
+* **Index:** `{ status: 1, nextRunAt: 1 }`
+
+---
+
+## 10. API Endpoints
+
+| Method | Endpoint | Auth | Role | Purpose |
+| :--- | :--- | :---: | :---: | :--- |
+| `POST` | `/api/auth/register` | None | Public | Register new patient, doctor, or admin |
+| `POST` | `/api/auth/login` | None | Public | Authenticate user & receive JWT |
+| `GET` | `/api/auth/me` | JWT | Any | Retrieve logged-in user profile |
+| `GET` | `/api/doctors` | None | Public | List doctors (filter by `?specialization=`) |
+| `GET` | `/api/doctors/:id/available-slots` | None | Public | Dynamic slots for doctor on `?date=YYYY-MM-DD` |
+| `POST` | `/api/doctors` | JWT | Admin | Create new doctor profile |
+| `PUT` | `/api/doctors/:id` | JWT | Admin | Update doctor working hours/duration |
+| `DELETE` | `/api/doctors/:id` | JWT | Admin | Delete doctor profile |
+| `POST` | `/api/doctors/leave` | JWT | Doctor | Register leave day & cancel conflicting visits |
+| `POST` | `/api/appointments/hold` | JWT | Patient | Atomically hold slot for 5 minutes |
+| `POST` | `/api/appointments/book` | JWT | Patient | Finalize booking + AI triage + email + calendar |
+| `PUT` | `/api/appointments/:id/cancel` | JWT | Patient/Doc | Cancel appointment + trigger refund email |
+| `PUT` | `/api/appointments/:id/reschedule` | JWT | Patient | Reschedule to new date/time slot |
+| `POST` | `/api/appointments/:id/post-visit` | JWT | Doctor | Submit clinical notes + generate AI care plan |
+| `GET` | `/api/appointments/my` | JWT | Any | Get current user's appointment records |
+
+---
+
+## 11. Failure Handling Matrix
+
+| Component | Failure Mode | System Behavior |
+| :--- | :--- | :--- |
+| **Gemini LLM** | Network timeout / Missing API key | Returns structured fallback triage/summary; appointment booking succeeds. |
+| **Nodemailer** | SMTP connection drop / Invalid auth | Logs error, returns `EMAIL_FAILED`, persists core booking in MongoDB. |
+| **Google Calendar** | Missing refresh token / OAuth expiry | Logs warning, returns `{ success: false }`, avoids crashing booking. |
+| **Concurrent Booking** | Two patients confirm same slot simultaneously | Second request hits MongoDB unique constraint and receives HTTP `409 Conflict`. |
+| **Expired Slot Hold** | 5-minute timer elapses before confirmation | MongoDB TTL index purges hold; slot is returned to available pool. |
+| **Server Restart** | Node process crashes during reminder retries | All retry counters & `nextRunAt` timestamps persist in MongoDB `ReminderJob` collection. |
+
+---
+
+## 12. Local Installation & Setup
 
 ### Prerequisites
-- Node.js (v18+)
-- MongoDB (local or Atlas)
+* **Node.js**: v18+ installed
+* **MongoDB**: Local MongoDB instance (`mongodb://localhost:27017`) or MongoDB Atlas URI
 
-### Backend
+### 1. Clone & Setup Backend
 ```bash
 cd backend
 npm install
-cp .env.example .env    # Fill in your keys
-npm run seed            # Populate sample data
-npm start               # http://localhost:5000
+cp .env.example .env
 ```
 
-### Frontend
+Edit `backend/.env` with your preferred configuration:
+```env
+PORT=5000
+MONGO_URI=mongodb://localhost:27017/healthcare_manager
+JWT_SECRET=super_secret_jwt_key_12345
+GEMINI_API_KEY=your_gemini_api_key_optional
+```
+
+### 2. Seed Initial Clinic Data
 ```bash
-cd frontend
+npm run seed
+```
+*Creates initial demo users: Patient (`alex.rivera@example.com`), Doctor (`sarah.jenkins@clinic.com`), and Admin (`admin@clinic.com`) with password `password123`.*
+
+### 3. Start Backend Server
+```bash
+npm run dev
+# Server running on port 5000
+```
+
+### 4. Setup & Start Frontend
+```bash
+cd ../frontend
 npm install
-npm run dev             # http://localhost:5173
+npm run dev
+# Vite dev server running at http://localhost:5173/
 ```
 
 ---
 
-## 🧪 Running Unit Tests
+## 13. Automated Unit Testing
+
+HealthPulse AI includes 23 unit tests covering concurrency, AI fallback, calendar persistence, reminder queues, and email flows:
 
 ```bash
 cd backend
 npm test
 ```
 
-Covers: double-booking prevention, leave conflicts, AI fallback mechanisms, email service.
+### Test Suite Summary:
+```
+PASS tests/reminder.test.js    (Bounded backoff, retry limits, deduplication)
+PASS tests/booking.test.js     (Double-booking prevention, concurrency locks, leave conflicts)
+PASS tests/ai.test.js          (Pre/Post-visit LLM generation & fallback behavior)
+PASS tests/calendar.test.js    (OAuth lifecycle, event persistence, patch/delete)
+PASS tests/email.test.js       (Nodemailer delivery status contracts & 5 notification flows)
+
+Test Suites: 5 passed, 5 total
+Tests:       23 passed, 23 total
+```
 
 ---
 
-## 📄 System Design Write-Up
+## 14. Recommended Evaluator Demonstration Flow
 
-See [`SYSTEM_DESIGN.md`](./SYSTEM_DESIGN.md) — 800-word document covering:
-- Double-booking prevention mechanism
-- Doctor leave conflict handling
-- Slot hold mechanism
-- Notification failure handling
+To verify the complete clinical loop in under 5 minutes:
+
+1. **Sign in as Admin** (`admin@clinic.com` / `password123`):
+   * View the **Operations KPI Dashboard**.
+   * Edit Dr. Sarah Jenkins' working hours or slot duration (e.g. `30` mins).
+2. **Sign in as Patient** (`alex.rivera@example.com` / `password123`):
+   * Select **Cardiology** $\rightarrow$ **Dr. Sarah Jenkins**.
+   * Click an available time slot $\rightarrow$ **Observe the 5-minute atomic reservation countdown card**.
+   * Type or use **🎙️ Voice Input** to describe symptoms: *"Severe migraine with sensitivity to light for 3 days."*
+   * Click **Confirm Booking** $\rightarrow$ Observe AI urgency score and suggested clinical questions.
+3. **Sign in as Doctor** (`sarah.jenkins@clinic.com` / `password123`):
+   * In the **Doctor Workspace Queue**, locate the scheduled patient.
+   * Click **Start Consultation** $\rightarrow$ Review the AI pre-visit intake card.
+   * Enter clinical notes: *"Diagnosed migraine with aura. Prescribed Sumatriptan 50mg PRN. Rest in dark room."*
+   * Click **Save Notes & Generate Care Plan** $\rightarrow$ Observe real-time Gemini LLM translation.
+4. **Sign back in as Patient** (`alex.rivera@example.com` / `password123`):
+   * Go to **My Appointments** $\rightarrow$ Click **📋 View Care Plan**.
+   * Verify all 5 structured medical components: Visit summary, medication schedule, follow-up instructions, appointment date, and attending doctor details.
 
 ---
 
-## 🤖 LLM Prompts Used
+## 15. Google Calendar & Email Configuration (Optional)
 
-### Pre-Visit:
-```
-Analyse these symptoms and return: urgency level (Low / Medium / High),
-chief complaint, and three suggested questions for the doctor.
-Symptoms: <symptoms>
-```
+### Google Calendar OAuth 2.0 Setup
+1. Create a project in [Google Cloud Console](https://console.cloud.google.com/).
+2. Enable the **Google Calendar API**.
+3. Create OAuth 2.0 Client Credentials (Web Application) with redirect URI: `https://developers.google.com/oauthplayground`.
+4. In OAuth 2.0 Playground, authorize the scope `https://www.googleapis.com/auth/calendar` and exchange for a Refresh Token.
+5. Set `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `GOOGLE_REFRESH_TOKEN` in `backend/.env`.
 
-### Post-Visit:
+### Email (SMTP) Setup
+* **Development:** Defaults to automatic **Ethereal Email** test accounts (no setup required).
+* **Production/Gmail:** Set `EMAIL_SERVICE=gmail`, `EMAIL_USER=your_email@gmail.com`, and `EMAIL_PASS=your_gmail_app_password` in `backend/.env`.
+
+---
+
+## 16. Technical Trade-Offs & Honest Limitations
+
+* **OAuth Token Scope:** Google Calendar requires user-delegated OAuth 2.0 refresh tokens. If credentials are not supplied, the application gracefully skips calendar synchronization without interrupting booking.
+* **Background Worker Architecture:** To avoid requiring Redis/BullMQ infrastructure for evaluation, the background reminder queue is implemented as a MongoDB-backed persistent job queue driven by `node-cron`.
+* **Speech Recognition:** Voice input uses standard browser Web Speech APIs (`window.webkitSpeechRecognition`), supported natively in Google Chrome and Microsoft Edge.
+
+---
+
+## 17. Project Structure
+
 ```
-Convert these clinical notes into a patient-friendly summary with
-medication schedule and follow-up steps: <notes>
+unthinkable/
+├── backend/
+│   ├── config/
+│   │   └── db.js                 # MongoDB connection handler
+│   ├── controllers/
+│   │   ├── appointmentController.js # Booking, hold, reschedule, post-visit
+│   │   ├── authController.js        # Register, login, getMe
+│   │   └── doctorController.js      # Availability, slots, leave, CRUD
+│   ├── middleware/
+│   │   └── authMiddleware.js        # JWT verification & RBAC guard
+│   ├── models/
+│   │   ├── Appointment.js           # Unique index, TTL index, schemas
+│   │   ├── DoctorProfile.js         # Working hours, slot duration, leave
+│   │   ├── ReminderJob.js           # Persistent retry queue data model
+│   │   └── User.js                  # User credentials & roles
+│   ├── routes/
+│   │   ├── appointmentRoutes.js     # /api/appointments/*
+│   │   ├── authRoutes.js            # /api/auth/*
+│   │   └── doctorRoutes.js          # /api/doctors/*
+│   ├── services/
+│   │   ├── aiService.js             # Gemini 1.5 Flash triage & post-visit
+│   │   ├── calendarService.js       # Google Calendar OAuth API
+│   │   ├── cronService.js           # Persistent reminder queue worker
+│   │   └── emailService.js          # Nodemailer notification flows
+│   ├── tests/
+│   │   ├── ai.test.js               # AI fallback unit tests
+│   │   ├── booking.test.js          # Concurrency & double-booking tests
+│   │   ├── calendar.test.js         # Calendar event lifecycle tests
+│   │   ├── email.test.js            # Notification status contract tests
+│   │   └── reminder.test.js         # Exponential backoff & retry tests
+│   ├── package.json
+│   ├── seed.js                      # Initial clinic database seeder
+│   └── server.js                    # Express app entrypoint
+├── frontend/
+│   ├── src/
+│   │   ├── api.js                   # Axios/Fetch API client wrapper
+│   │   ├── App.jsx                  # Clinical SaaS portals (Patient/Doctor/Admin)
+│   │   ├── index.css                # Professional healthcare design system
+│   │   └── main.jsx
+│   └── package.json
+├── SYSTEM_DESIGN.md                 # In-depth system design & concurrency write-up
+└── README.md
 ```

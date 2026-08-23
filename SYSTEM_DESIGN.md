@@ -1,49 +1,83 @@
 # Healthcare System Design Write-Up
 
 ## 1. Overview & Architecture
-The Healthcare Appointment & Follow-Up Manager is built using a decoupled MERN architecture (MongoDB, Express, React, Node.js) with Google Gemini AI integration. The system serves three roles: Patients, Doctors, and Admins.
+The Healthcare Appointment & Follow-Up Manager is built using a decoupled MERN architecture (MongoDB, Express, React, Node.js) with Google Gemini AI integration. The system serves three distinct roles: Patients, Doctors, and Admins.
 
 ---
 
 ## 2. Double-Booking Prevention Mechanism
-To guarantee that no two patients can ever book the same doctor at the same date and time slot, the system employs a two-tier concurrency control strategy:
+To guarantee that no two patients can ever book the same doctor at the same date and time slot, the system employs a multi-tiered concurrency control strategy:
 
 ### A. Database-Level Schema Constraint
 A compound unique index is applied at the MongoDB schema layer:
-`AppointmentSchema.index({ doctor: 1, date: 1, timeSlot: 1 }, { unique: true })`
+```javascript
+appointmentSchema.index({ doctor: 1, date: 1, timeSlot: 1 }, { unique: true });
+```
 This acts as an immutable database constraint, ensuring physical impossibility of duplicate slot entries.
 
 ### B. Controller-Level ACID Transactions
-When a booking request arrives, the Express controller initiates a MongoDB Session transaction (`mongoose.startSession()`). If two concurrent HTTP requests attempt to lock the same doctor slot at the exact same millisecond, MongoDB's write-lock rejects the second transaction with error code `11000`. The controller catches this error gracefully and responds to the client with an HTTP `409 Conflict` ("This slot has already been reserved").
+When a booking or hold request arrives, the Express controller initiates a MongoDB Session transaction (`mongoose.startSession()`). If two concurrent HTTP requests attempt to lock the same doctor slot at the exact same millisecond, MongoDB's write-lock rejects the second transaction with error code `11000`. The controller catches this error gracefully and responds to the client with an HTTP `409 Conflict` ("This slot is already booked or held").
 
 ---
 
 ## 3. Doctor Leave Conflict Handling
-When a doctor marks a leave day:
+When a doctor marks a leave day (`POST /api/doctors/leave`):
 1. The backend appends the date to the `leaveDays` array in `DoctorProfile`.
-2. Immediate cache invalidation (`cache.del('all_doctors')`) ensures no new appointments can be attempted on that date.
+2. Cache invalidation (`cache.flushAll()`) ensures no stale availability is served.
 3. The system queries all existing appointments scheduled for that doctor on the affected date.
-4. Notifications (email) are triggered to affected patients automatically.
-5. High-urgency appointments (evaluated via AI pre-visit summary) are flagged for priority rescheduling suggestions.
+4. Each conflicting appointment is transitioned to `Cancelled`.
+5. Google Calendar events are cleaned up via `deleteCalendarEvent(eventId)`.
+6. Automated cancellation notice emails (`sendDoctorLeaveCancellation`) are sent to affected patients.
 
 ---
 
-## 4. Temporary Slot Hold Mechanism
-To prevent "cart-hoarding" during checkout:
-- When a patient selects a time slot, a temporary hold key is created in `node-cache` with a 5-minute Time-To-Live (TTL): `slot_hold:{doctorId}:{date}:{timeSlot}`.
-- If another patient attempts to click the same slot while held, the backend returns a `423 Locked` status.
-- If the patient completes the symptom submission within 5 minutes, the appointment is finalized and the hold key is released. If the timer expires, `node-cache` automatically purges the key, returning the slot to the public pool.
+## 4. Atomic 5-Minute Slot Hold Mechanism
+To prevent race conditions while patients type or speak symptoms:
+- When a patient selects an available slot, `POST /api/appointments/hold` executes inside an atomic session.
+- A hold document is created with `status: 'Held'` and `holdExpiresAt: Date.now() + 5 minutes`.
+- MongoDB TTL index (`appointmentSchema.index({ holdExpiresAt: 1 }, { expireAfterSeconds: 0 })`) ensures automatic cleanup of expired holds.
+- Other patients attempting to select the held slot receive `HTTP 409 Conflict`.
+- When the holding patient confirms booking (`POST /api/appointments/book`), the hold transitions to `status: 'Scheduled'` and `holdExpiresAt` is cleared.
 
 ---
 
-## 5. Notification Reliability & Graceful Failure Handling
-Email notifications (Nodemailer/SMTP) and AI summarizations are integrated as resilient, non-blocking operations:
+## 5. Background Medication Reminders & Persistent Retry Queue
 
-### A. Asynchronous Processing
-Email sending and Google Calendar sync run asynchronously after DB commit, ensuring API response times remain under 100ms.
+### A. Design Rationale
+Rather than introducing heavy external message broker dependencies (e.g. Redis/BullMQ), which would require complex devops infrastructure for a lightweight clinic system, the application uses a **MongoDB-Backed Persistent Job Queue** driven by `node-cron`.
 
-### B. LLM Fallback Mechanism
-If the Google Gemini API fails (network timeout or missing API key), the system switches to a local template fallback generator. The user booking succeeds without error, ensuring 100% uptime.
+### B. Data Model (`ReminderJob`)
+```javascript
+{
+  appointment: ObjectId (ref: 'Appointment', unique),
+  patient: ObjectId (ref: 'User'),
+  patientEmail: String,
+  patientName: String,
+  medicationSchedule: String,
+  status: 'PENDING' | 'SENT' | 'FAILED_PERMANENTLY',
+  attempts: Number,
+  maxAttempts: 5,
+  nextRunAt: Date,
+  lastAttemptAt: Date,
+  lastError: String
+}
+```
 
-### C. Background Retry Cron
-Failed email dispatches are queued and retried by a background `node-cron` worker every hour.
+### C. State Machine & Execution Flow
+1. **Job Enqueueing:** When a doctor submits post-visit notes containing a medication schedule (`POST /api/appointments/:id/post-visit`), a `ReminderJob` document is created/upserted in MongoDB with `status: 'PENDING'`.
+2. **Background Cron Worker:** `node-cron` periodically queries:
+   ```javascript
+   ReminderJob.find({ status: 'PENDING', nextRunAt: { $lte: new Date() } })
+   ```
+3. **Delivery Attempt:** For each due job, `attempts` is incremented and `sendMedicationReminder()` is called via Nodemailer.
+4. **Success State:** If email delivery succeeds (`EMAIL_SENT`), the job is marked `status: 'SENT'`. It is never re-executed, preventing duplicate reminders.
+5. **Bounded Exponential Backoff:**
+   If sending fails (e.g. SMTP network error):
+   $$\text{BackoffMinutes} = \min(60, 2^{\text{attempts}})$$
+   - Attempt 1 failure $\rightarrow$ Retry in 2 minutes
+   - Attempt 2 failure $\rightarrow$ Retry in 4 minutes
+   - Attempt 3 failure $\rightarrow$ Retry in 8 minutes
+   - Attempt 4 failure $\rightarrow$ Retry in 16 minutes
+   - Attempt 5 failure $\rightarrow$ Transition to `status: 'FAILED_PERMANENTLY'`
+6. **Crash & Restart Durability:**
+   Because all job states, attempt counts, and `nextRunAt` timestamps reside in MongoDB, server restarts or crashes never lose pending retry jobs. On reboot, `initCronJobs()` immediately resumes processing pending jobs whose `nextRunAt` has elapsed.

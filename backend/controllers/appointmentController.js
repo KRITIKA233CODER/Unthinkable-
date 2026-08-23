@@ -1,23 +1,32 @@
 const Appointment = require('../models/Appointment');
 const DoctorProfile = require('../models/DoctorProfile');
+const ReminderJob = require('../models/ReminderJob');
 const mongoose = require('mongoose');
 const { generatePreVisitSummary, generatePostVisitSummary } = require('../services/aiService');
-const { sendBookingConfirmation } = require('../services/emailService');
-const { createCalendarEvent, deleteCalendarEvent } = require('../services/calendarService');
+const {
+  sendBookingConfirmation,
+  sendCancellationEmail,
+  sendRescheduleEmail
+} = require('../services/emailService');
+const { createCalendarEvent, updateCalendarEvent, deleteCalendarEvent } = require('../services/calendarService');
 
-// @desc    Book an appointment with AI Pre-Visit Summary
-// @route   POST /api/appointments/book
+// @desc    Hold an appointment slot for 5 minutes
+// @route   POST /api/appointments/hold
 // @access  Private (Patient)
-const bookAppointment = async (req, res) => {
-  const { doctorId, date, timeSlot, symptoms } = req.body;
+const holdSlot = async (req, res) => {
+  const { doctorId, date, timeSlot } = req.body;
   const patientId = req.user.id;
+
+  if (!doctorId || !date || !timeSlot) {
+    return res.status(400).json({ message: 'doctorId, date, and timeSlot are required' });
+  }
 
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
     // 1. Verify doctor exists
-    const doctor = await DoctorProfile.findById(doctorId).populate('user', 'name email').session(session);
+    const doctor = await DoctorProfile.findById(doctorId).session(session);
     if (!doctor) {
       await session.abortTransaction();
       session.endSession();
@@ -25,51 +34,268 @@ const bookAppointment = async (req, res) => {
     }
 
     // 2. Check for doctor leave on this date
-    const bookingDate = new Date(date).toISOString().split('T')[0];
-    const isLeave = doctor.leaveDays.some(leave =>
-      leave.date.toISOString().split('T')[0] === bookingDate
-    );
+    const bookingDateStr = new Date(date).toISOString().split('T')[0];
+    const isLeave = doctor.leaveDays.some((leave) => {
+      const leaveDateStr = new Date(leave.date || leave).toISOString().split('T')[0];
+      return leaveDateStr === bookingDateStr;
+    });
+
     if (isLeave) {
       await session.abortTransaction();
       session.endSession();
       return res.status(400).json({ message: 'Doctor is on leave on this date' });
     }
 
-    // 3. Generate AI Pre-Visit Summary (graceful fallback inside aiService)
-    const aiPreVisit = await generatePreVisitSummary(symptoms);
+    // 3. Find any existing appointment for this exact slot
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
 
-    // 4. Create appointment inside transaction
-    const appointment = await Appointment.create([{
+    const existingAppt = await Appointment.findOne({
+      doctor: doctorId,
+      date: { $gte: startOfDay, $lte: endOfDay },
+      timeSlot
+    }).session(session);
+
+    if (existingAppt) {
+      if (existingAppt.status === 'Scheduled' || existingAppt.status === 'Completed') {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(409).json({ message: 'This time slot is already booked.' });
+      }
+
+      if (existingAppt.status === 'Held') {
+        const now = new Date();
+        if (existingAppt.holdExpiresAt && existingAppt.holdExpiresAt > now) {
+          // If held by someone else
+          if (existingAppt.patient.toString() !== patientId) {
+            await session.abortTransaction();
+            session.endSession();
+            return res.status(409).json({
+              message: 'This slot is temporarily held by another patient. Please try again in a few minutes.'
+            });
+          }
+
+          // Held by same patient -> extend and return existing hold
+          existingAppt.holdExpiresAt = new Date(Date.now() + 5 * 60 * 1000);
+          await existingAppt.save({ session });
+          await session.commitTransaction();
+          session.endSession();
+
+          return res.status(200).json({
+            message: 'Slot hold extended',
+            holdId: existingAppt._id,
+            holdExpiresAt: existingAppt.holdExpiresAt,
+            expiresInSeconds: 300,
+            doctorId,
+            date,
+            timeSlot
+          });
+        }
+
+        // Expired hold -> remove it inside transaction to free the index
+        await Appointment.deleteOne({ _id: existingAppt._id }).session(session);
+      }
+    }
+
+    // 4. Create new temporary hold (5 minutes expiration)
+    const holdExpiry = new Date(Date.now() + 5 * 60 * 1000);
+    const newHold = await Appointment.create([{
       patient: patientId,
       doctor: doctorId,
-      date,
+      date: new Date(date),
       timeSlot,
-      symptoms,
-      preVisitSummary: {
-        urgencyLevel: aiPreVisit.urgencyLevel || 'Medium',
-        chiefComplaint: aiPreVisit.chiefComplaint || symptoms,
-        suggestedQuestions: aiPreVisit.suggestedQuestions || []
-      }
+      status: 'Held',
+      holdExpiresAt: holdExpiry,
+      symptoms: 'Pending confirmation'
     }], { session });
 
     await session.commitTransaction();
     session.endSession();
 
-    // 5. Send confirmation email to both patient and doctor (async, non-blocking)
+    res.status(201).json({
+      message: 'Slot held successfully for 5 minutes',
+      holdId: newHold[0]._id,
+      holdExpiresAt: holdExpiry,
+      expiresInSeconds: 300,
+      doctorId,
+      date,
+      timeSlot
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+
+    if (error.code === 11000) {
+      return res.status(409).json({ message: 'This slot is currently held or booked by another user.' });
+    }
+
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Confirm / Book an appointment (converts valid hold to Scheduled or direct booking)
+// @route   POST /api/appointments/book
+// @access  Private (Patient)
+const bookAppointment = async (req, res) => {
+  const { holdId, doctorId, date, timeSlot, symptoms } = req.body;
+  const patientId = req.user.id;
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    let appointment;
+    let doctor;
+
+    // A) If booking with a valid hold ID
+    if (holdId) {
+      appointment = await Appointment.findById(holdId).session(session);
+      if (!appointment) {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(404).json({ message: 'Hold reservation not found.' });
+      }
+
+      if (appointment.patient.toString() !== patientId) {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(403).json({ message: 'You do not own this slot reservation.' });
+      }
+
+      if (appointment.status !== 'Held') {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(400).json({ message: 'This appointment is already confirmed or processed.' });
+      }
+
+      if (appointment.holdExpiresAt && appointment.holdExpiresAt <= new Date()) {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(409).json({ message: 'Slot hold has expired. Please reselect an available slot.' });
+      }
+
+      doctor = await DoctorProfile.findById(appointment.doctor).populate('user', 'name email').session(session);
+
+      // Generate AI Pre-Visit Summary (graceful fallback)
+      const aiPreVisit = await generatePreVisitSummary(symptoms || appointment.symptoms);
+
+      appointment.status = 'Scheduled';
+      appointment.holdExpiresAt = undefined;
+      appointment.symptoms = symptoms || appointment.symptoms;
+      appointment.preVisitSummary = {
+        urgencyLevel: aiPreVisit.urgencyLevel || 'Medium',
+        chiefComplaint: aiPreVisit.chiefComplaint || symptoms,
+        suggestedQuestions: aiPreVisit.suggestedQuestions || []
+      };
+
+      await appointment.save({ session });
+      await session.commitTransaction();
+      session.endSession();
+    } else {
+      // B) Direct booking without pre-existing hold
+      doctor = await DoctorProfile.findById(doctorId).populate('user', 'name email').session(session);
+      if (!doctor) {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(404).json({ message: 'Doctor not found' });
+      }
+
+      const bookingDateStr = new Date(date).toISOString().split('T')[0];
+      const isLeave = doctor.leaveDays.some((leave) => {
+        const leaveDateStr = new Date(leave.date || leave).toISOString().split('T')[0];
+        return leaveDateStr === bookingDateStr;
+      });
+
+      if (isLeave) {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(400).json({ message: 'Doctor is on leave on this date' });
+      }
+
+      const aiPreVisit = await generatePreVisitSummary(symptoms);
+
+      const created = await Appointment.create([{
+        patient: patientId,
+        doctor: doctorId,
+        date: new Date(date),
+        timeSlot,
+        symptoms,
+        status: 'Scheduled',
+        preVisitSummary: {
+          urgencyLevel: aiPreVisit.urgencyLevel || 'Medium',
+          chiefComplaint: aiPreVisit.chiefComplaint || symptoms,
+          suggestedQuestions: aiPreVisit.suggestedQuestions || []
+        }
+      }], { session });
+
+      appointment = created[0];
+      await session.commitTransaction();
+      session.endSession();
+    }
+
+    // 1. Send confirmation email (Nodemailer status tracked)
+    const bookingDateFormatted = new Date(appointment.date).toISOString().split('T')[0];
     const appointmentData = {
-      date: bookingDate,
-      timeSlot,
-      symptoms,
-      urgencyLevel: aiPreVisit.urgencyLevel || 'Medium'
+      date: bookingDateFormatted,
+      timeSlot: appointment.timeSlot,
+      symptoms: appointment.symptoms,
+      urgencyLevel: appointment.preVisitSummary?.urgencyLevel || 'Medium'
     };
-    sendBookingConfirmation(req.user.email, doctor.user.email, appointmentData)
-      .catch(err => console.error('Email send failed (non-blocking):', err.message));
 
-    // 6. Create Google Calendar events (async, non-blocking)
-    createCalendarEvent(appointment[0], req.user, doctor.user)
-      .catch(err => console.error('Calendar sync failed (non-blocking):', err.message));
+    let emailResult = {
+      status: 'EMAIL_NOT_CONFIGURED',
+      message: 'No recipient email addresses provided.'
+    };
 
-    res.status(201).json(appointment[0]);
+    if (req.user?.email || doctor?.user?.email) {
+      try {
+        const mailRes = await sendBookingConfirmation(req.user.email, doctor?.user?.email, appointmentData);
+        emailResult = {
+          status: mailRes?.status || 'EMAIL_SENT',
+          message: mailRes?.status === 'EMAIL_SENT' ? 'Booking confirmation email sent' : (mailRes?.message || 'Email sending failed'),
+          messageId: mailRes?.messageId
+        };
+      } catch (mailErr) {
+        console.error('[EMAIL_FAILED] Booking confirmation:', mailErr.message);
+        emailResult = {
+          status: 'EMAIL_FAILED',
+          message: mailErr.message
+        };
+      }
+    }
+
+    // 2. Google Calendar Synchronization
+    let calendarResult = {
+      success: false,
+      message: 'Google Calendar synchronization skipped (OAuth credentials not configured)'
+    };
+
+    try {
+      const eventId = await createCalendarEvent(appointment, req.user, doctor?.user);
+      if (eventId) {
+        appointment.googleCalendarEventId = eventId;
+        await Appointment.findByIdAndUpdate(appointment._id, { googleCalendarEventId: eventId });
+        calendarResult = {
+          success: true,
+          eventId,
+          message: 'Google Calendar event created successfully'
+        };
+      }
+    } catch (calErr) {
+      console.error('Google Calendar creation failed (non-blocking):', calErr.message);
+      calendarResult = {
+        success: false,
+        message: `Calendar sync failed: ${calErr.message}`
+      };
+    }
+
+    res.status(201).json({
+      appointment,
+      email: emailResult,
+      calendar: calendarResult
+    });
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
@@ -99,26 +325,67 @@ const cancelAppointment = async (req, res) => {
       return res.status(400).json({ message: 'Appointment is already cancelled' });
     }
 
+    const previousEventId = appointment.googleCalendarEventId;
+
     appointment.status = 'Cancelled';
+    appointment.googleCalendarEventId = undefined;
     await appointment.save();
 
-    // Send cancellation email to both parties
+    // 1. Send cancellation email
     const cancelData = {
       date: appointment.date.toISOString().split('T')[0],
       timeSlot: appointment.timeSlot,
-      symptoms: 'CANCELLED — This appointment has been cancelled.',
+      symptoms: appointment.symptoms || 'Appointment cancelled',
       urgencyLevel: 'N/A'
     };
-    sendBookingConfirmation(appointment.patient.email, appointment.doctor.user.email, cancelData)
-      .catch(err => console.error('Cancel email failed (non-blocking):', err.message));
 
-    // Delete Google Calendar event if exists
-    if (appointment.googleCalendarEventId) {
-      deleteCalendarEvent(appointment.googleCalendarEventId)
-        .catch(err => console.error('Calendar delete failed (non-blocking):', err.message));
+    let emailResult = {
+      status: 'EMAIL_NOT_CONFIGURED',
+      message: 'No recipient email addresses provided.'
+    };
+
+    if (appointment.patient?.email || appointment.doctor?.user?.email) {
+      try {
+        const mailRes = await sendCancellationEmail(
+          appointment.patient?.email,
+          appointment.doctor?.user?.email,
+          cancelData,
+          'Cancelled by patient/clinic'
+        );
+        emailResult = {
+          status: mailRes?.status || 'EMAIL_SENT',
+          message: mailRes?.status === 'EMAIL_SENT' ? 'Cancellation email sent' : mailRes?.message,
+          messageId: mailRes?.messageId
+        };
+      } catch (mailErr) {
+        console.error('[EMAIL_FAILED] Cancellation email:', mailErr.message);
+        emailResult = {
+          status: 'EMAIL_FAILED',
+          message: mailErr.message
+        };
+      }
     }
 
-    res.status(200).json({ message: 'Appointment cancelled successfully', appointment });
+    // 2. Delete Google Calendar event if one existed
+    let calendarDeleted = false;
+    if (previousEventId) {
+      try {
+        await deleteCalendarEvent(previousEventId);
+        calendarDeleted = true;
+      } catch (calErr) {
+        console.error('Calendar deletion error:', calErr.message);
+      }
+    }
+
+    res.status(200).json({
+      message: 'Appointment cancelled successfully',
+      appointment,
+      email: emailResult,
+      calendar: {
+        deleted: calendarDeleted,
+        previousEventId
+      }
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -131,7 +398,10 @@ const rescheduleAppointment = async (req, res) => {
   const { date, timeSlot } = req.body;
 
   try {
-    const appointment = await Appointment.findById(req.params.id);
+    const appointment = await Appointment.findById(req.params.id)
+      .populate('patient', 'name email')
+      .populate({ path: 'doctor', populate: { path: 'user', select: 'name email' } });
+
     if (!appointment) {
       return res.status(404).json({ message: 'Appointment not found' });
     }
@@ -140,23 +410,99 @@ const rescheduleAppointment = async (req, res) => {
       return res.status(400).json({ message: 'Only scheduled appointments can be rescheduled' });
     }
 
-    // Check the new slot is available using the unique index
-    const existingSlot = await Appointment.findOne({
-      doctor: appointment.doctor,
-      date: new Date(date),
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    // Check conflict
+    const conflict = await Appointment.findOne({
+      doctor: appointment.doctor._id || appointment.doctor,
+      date: { $gte: startOfDay, $lte: endOfDay },
       timeSlot,
-      status: { $ne: 'Cancelled' }
+      _id: { $ne: appointment._id },
+      $or: [
+        { status: { $in: ['Scheduled', 'Completed'] } },
+        { status: 'Held', holdExpiresAt: { $gt: new Date() } }
+      ]
     });
 
-    if (existingSlot) {
-      return res.status(409).json({ message: 'New time slot is already booked' });
+    if (conflict) {
+      return res.status(409).json({ message: 'New time slot is already booked or held.' });
     }
 
+    const oldDetails = {
+      date: appointment.date.toISOString().split('T')[0],
+      timeSlot: appointment.timeSlot
+    };
+
+    const previousEventId = appointment.googleCalendarEventId;
     appointment.date = new Date(date);
     appointment.timeSlot = timeSlot;
     await appointment.save();
 
-    res.status(200).json({ message: 'Appointment rescheduled successfully', appointment });
+    // 1. Send reschedule notification email to both patient & doctor
+    const newDetails = {
+      date: new Date(date).toISOString().split('T')[0],
+      timeSlot: appointment.timeSlot,
+      symptoms: appointment.symptoms
+    };
+
+    let emailResult = {
+      status: 'EMAIL_NOT_CONFIGURED',
+      message: 'No recipient email provided.'
+    };
+
+    if (appointment.patient?.email || appointment.doctor?.user?.email) {
+      try {
+        const mailRes = await sendRescheduleEmail(
+          appointment.patient?.email,
+          appointment.doctor?.user?.email,
+          newDetails,
+          oldDetails
+        );
+        emailResult = {
+          status: mailRes?.status || 'EMAIL_SENT',
+          message: mailRes?.status === 'EMAIL_SENT' ? 'Reschedule email sent' : mailRes?.message,
+          messageId: mailRes?.messageId
+        };
+      } catch (mailErr) {
+        console.error('[EMAIL_FAILED] Reschedule email:', mailErr.message);
+        emailResult = {
+          status: 'EMAIL_FAILED',
+          message: mailErr.message
+        };
+      }
+    }
+
+    // 2. Google Calendar Update
+    let calendarResult = { success: false, message: 'Calendar sync skipped' };
+    if (previousEventId) {
+      try {
+        const updatedId = await updateCalendarEvent(
+          previousEventId,
+          appointment,
+          appointment.patient,
+          appointment.doctor?.user
+        );
+        if (updatedId) {
+          calendarResult = {
+            success: true,
+            eventId: updatedId,
+            message: 'Google Calendar event rescheduled successfully'
+          };
+        }
+      } catch (calErr) {
+        console.error('Calendar update error:', calErr.message);
+      }
+    }
+
+    res.status(200).json({
+      message: 'Appointment rescheduled successfully',
+      appointment,
+      email: emailResult,
+      calendar: calendarResult
+    });
   } catch (error) {
     if (error.code === 11000) {
       return res.status(409).json({ message: 'New time slot is already booked.' });
@@ -191,18 +537,43 @@ const submitPostVisit = async (req, res) => {
 
     await appointment.save();
 
+    // Enqueue persistent background medication reminder job
+    if (appointment.postVisitSummary?.medicationSchedule) {
+      const populated = await Appointment.findById(appointment._id).populate('patient', 'name email');
+      if (populated?.patient?.email) {
+        await ReminderJob.findOneAndUpdate(
+          { appointment: appointment._id },
+          {
+            appointment: appointment._id,
+            patient: populated.patient._id,
+            patientEmail: populated.patient.email,
+            patientName: populated.patient.name,
+            medicationSchedule: appointment.postVisitSummary.medicationSchedule,
+            status: 'PENDING',
+            attempts: 0,
+            maxAttempts: 5,
+            nextRunAt: new Date()
+          },
+          { upsert: true, new: true }
+        ).catch(err => console.error('Failed to enqueue reminder job:', err.message));
+      }
+    }
+
     res.status(200).json(appointment);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-// @desc    Get user appointments
+// @desc    Get user appointments (excludes incomplete holds)
 // @route   GET /api/appointments/my
 // @access  Private
 const getMyAppointments = async (req, res) => {
   try {
-    let query = {};
+    let query = {
+      status: { $in: ['Scheduled', 'Completed', 'Cancelled'] }
+    };
+
     if (req.user.role === 'patient') {
       query.patient = req.user.id;
     } else if (req.user.role === 'doctor') {
@@ -227,6 +598,7 @@ const getMyAppointments = async (req, res) => {
 };
 
 module.exports = {
+  holdSlot,
   bookAppointment,
   cancelAppointment,
   rescheduleAppointment,

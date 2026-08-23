@@ -30,12 +30,12 @@ const getOAuth2Client = () => {
 
 /**
  * Creates a Google Calendar event for a booked appointment.
- * Graceful fallback if OAuth credentials are missing.
+ * Returns eventId or null.
  */
 const createCalendarEvent = async (appointment, patient, doctor) => {
   const auth = getOAuth2Client();
   if (!auth) {
-    console.warn('Google Calendar credentials missing. Skipping calendar sync.');
+    console.warn('Google Calendar credentials missing. Skipping calendar event creation.');
     return null;
   }
 
@@ -43,8 +43,8 @@ const createCalendarEvent = async (appointment, patient, doctor) => {
     const calendar = google.calendar({ version: 'v3', auth });
 
     const event = {
-      summary: `Healthcare Appointment — ${patient.name} with ${doctor.name}`,
-      description: `Symptoms: ${appointment.symptoms}\nUrgency: ${appointment.preVisitSummary?.urgencyLevel || 'N/A'}`,
+      summary: `Healthcare Appointment — ${patient?.name || 'Patient'} with ${doctor?.name || 'Doctor'}`,
+      description: `Symptoms: ${appointment.symptoms || 'N/A'}\nUrgency: ${appointment.preVisitSummary?.urgencyLevel || 'Medium'}`,
       start: {
         dateTime: new Date(appointment.date).toISOString(),
         timeZone: 'Asia/Kolkata',
@@ -55,8 +55,8 @@ const createCalendarEvent = async (appointment, patient, doctor) => {
         timeZone: 'Asia/Kolkata',
       },
       attendees: [
-        { email: patient.email },
-        { email: doctor.email },
+        ...(patient?.email ? [{ email: patient.email }] : []),
+        ...(doctor?.email ? [{ email: doctor.email }] : []),
       ],
     };
 
@@ -66,11 +66,50 @@ const createCalendarEvent = async (appointment, patient, doctor) => {
       sendUpdates: 'all',
     });
 
-    console.log('Google Calendar event created:', response.data.id);
+    console.log('Google Calendar event created successfully:', response.data.id);
     return response.data.id;
   } catch (error) {
     console.error('Google Calendar create error:', error.message);
     return null; // Graceful - calendar failure does not crash the booking
+  }
+};
+
+/**
+ * Updates an existing Google Calendar event on reschedule.
+ */
+const updateCalendarEvent = async (eventId, appointment, patient, doctor) => {
+  const auth = getOAuth2Client();
+  if (!auth || !eventId) {
+    return null;
+  }
+
+  try {
+    const calendar = google.calendar({ version: 'v3', auth });
+
+    const event = {
+      start: {
+        dateTime: new Date(appointment.date).toISOString(),
+        timeZone: 'Asia/Kolkata',
+      },
+      end: {
+        dateTime: new Date(new Date(appointment.date).getTime() + 30 * 60000).toISOString(),
+        timeZone: 'Asia/Kolkata',
+      },
+      description: `Symptoms: ${appointment.symptoms || 'N/A'}\nStatus: Rescheduled to ${appointment.timeSlot}`,
+    };
+
+    const response = await calendar.events.patch({
+      calendarId: 'primary',
+      eventId,
+      resource: event,
+      sendUpdates: 'all',
+    });
+
+    console.log('Google Calendar event updated successfully:', response.data.id);
+    return response.data.id;
+  } catch (error) {
+    console.error('Google Calendar update error:', error.message);
+    return null;
   }
 };
 
@@ -89,15 +128,16 @@ const deleteCalendarEvent = async (eventId) => {
       calendarId: 'primary',
       eventId,
     });
-    console.log('Google Calendar event deleted:', eventId);
+    console.log('Google Calendar event deleted successfully:', eventId);
     return true;
   } catch (error) {
     console.error('Google Calendar delete error:', error.message);
-    return null;
+    return null; // Graceful handling if already deleted or missing
   }
 };
 
 module.exports = {
   createCalendarEvent,
+  updateCalendarEvent,
   deleteCalendarEvent,
 };
