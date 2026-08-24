@@ -27,36 +27,49 @@ HealthPulse AI addresses the complete clinical lifecycle: pre-visit intake triag
 
 ## 2. End-to-End Workflow
 
-![End-to-End Clinical Workflow](./docs/diagrams/workflow_diagram.png)
+![HealthPulse AI End-to-End Clinical Lifecycle](./docs/diagrams/workflow_diagram.svg)
 
 <details>
-<summary><b>View Mermaid Flowchart Definition</b></summary>
+<summary><b>🔍 View Mermaid Flowchart Definition</b></summary>
 
 ```mermaid
-flowchart TD
-    subgraph Patient Journey
-        A[Select Specialization & Doctor] --> B[Pick Date & Available Slot]
-        B --> C[Atomic 5-Min Slot Hold Lock]
-        C --> D[Describe Symptoms / Voice Input]
-        D --> E[Confirm Booking]
-        E --> F[Gemini Pre-Visit Triage Extraction]
-        F --> G[Scheduled Appointment Stored]
+flowchart LR
+    subgraph S1["1. Patient Intake & Slot Engine"]
+        A["1A. Select Specialist"] --> B["1B. Dynamic Slot Math Engine"]
+        B --> C["1C. 5-Min Atomic TTL Lock"]
+        C --> D["1D. Symptoms Intake / 🎙️ Voice"]
+        D --> E["1E. Confirm & Book Slot"]
     end
 
-    subgraph Doctor Journey
-        G --> H[Doctor Reviews Queue & Urgency Score]
-        H --> I[Conduct Consultation & Record Notes]
-        I --> J[Submit Clinical Diagnosis & Rx]
-        J --> K[Gemini Post-Visit Translation]
+    subgraph S2["2. Gemini 1.5 Flash AI Triage"]
+        E --> F["2A. Urgency Rating (High/Med/Low)"]
+        F --> G["2B. Structured Chief Complaint"]
+        G --> H["2C. 3 Suggested Clinical Questions"]
     end
 
-    subgraph Follow-Up & Notifications
-        K --> L[Structured Care Plan & Rx Stored]
-        L --> M[Patient Views Care Plan in Portal]
-        L --> N[Background Reminder Queue]
-        N --> O[Nodemailer Medication Reminders]
-        E --> P[Google Calendar & Confirmation Email]
+    subgraph S3["3. Doctor Clinical Workspace"]
+        H --> I["3A. Triage-Ranked Patient Queue"]
+        I --> J["3B. Clinical Visit & Note Taking"]
+        J --> K["3C. Gemini Post-Visit Care Plan"]
     end
+
+    subgraph S4["4. Follow-up & Notifications"]
+        K --> L["4A. Layman Care Plan Stored"]
+        L --> M["4B. Patient Portal View"]
+        L --> N["4C. Persistent Retry Reminder Queue"]
+        N --> O["4D. Nodemailer Email Reminders"]
+        E --> P["4E. Google Calendar OAuth Sync"]
+    end
+
+    classDef stage1 fill:#0f172a,stroke:#06b6d4,stroke-width:2px,color:#38bdf8;
+    classDef stage2 fill:#0f172a,stroke:#a855f7,stroke-width:2px,color:#c084fc;
+    classDef stage3 fill:#0f172a,stroke:#10b981,stroke-width:2px,color:#34d399;
+    classDef stage4 fill:#0f172a,stroke:#f59e0b,stroke-width:2px,color:#fbbf24;
+
+    class A,B,C,D,E stage1;
+    class F,G,H stage2;
+    class I,J,K stage3;
+    class L,M,N,O,P stage4;
 ```
 
 </details>
@@ -149,18 +162,11 @@ HealthPulse AI solves this at the database engine layer:
 2. **ACID Transaction Write Locks:** `bookAppointment` and `holdSlot` execute inside a MongoDB transaction session (`mongoose.startSession()`). If two concurrent HTTP requests target the same doctor slot at the same millisecond, MongoDB write locking allows exactly one write and rejects the second with error `E11000`.
 3. **HTTP 409 Conflict Response:** The controller catches duplicate key collisions and returns an explicit `409 Conflict` status code.
 
-![Double-Booking Concurrency Sequence Diagram](./docs/diagrams/double_booking_prevention.png)
-
-<details>
-<summary><b>View ASCII Concurrency Lock Overview</b></summary>
-
 ```
 Patient Request A ──┐
                     ├── MongoDB Unique Index { doctor, date, timeSlot } ──→ [200 OK] Created
 Patient Request B ──┘                                                    └──→ [409 Conflict] Duplicate
 ```
-
-</details>
 
 ---
 
@@ -240,11 +246,6 @@ Calendar synchronization is implemented in [`backend/services/calendarService.js
 
 ## 9. System Architecture
 
-![HealthPulse AI System Architecture](./docs/diagrams/system_architecture.png)
-
-<details>
-<summary><b>View Mermaid Graph Definition</b></summary>
-
 ```mermaid
 graph TD
     Client[React 19 SPA] -->|REST API & Bearer JWT| AuthMiddleware[Express Auth & RBAC Middleware]
@@ -265,8 +266,6 @@ graph TD
     Cron[Node-Cron Worker] --> ReminderJobModel[ReminderJob Queue]
     ReminderJobModel --> EmailService
 ```
-
-</details>
 
 ---
 
@@ -497,7 +496,7 @@ unthinkable/
 │   ├── seed.js                      # Initial clinic database seeder
 │   └── server.js                    # Express app entrypoint
 ├── docs/
-│   ├── diagrams/                    # System architecture & sequence diagram assets
+│   ├── diagrams/                    # System architecture & clinical workflow SVG/PNG assets
 │   └── screenshots/                 # Application visual walkthrough assets
 ├── frontend/
 │   ├── src/
@@ -506,8 +505,6 @@ unthinkable/
 │   │   ├── index.css                # Professional healthcare design system
 │   │   └── main.jsx
 │   └── package.json
-├── scripts/
-│   └── render_diagrams.js           # Automated Mermaid to image rendering utility
 ├── SYSTEM_DESIGN.md                 # In-depth system design & concurrency write-up
 └── README.md
 ```
