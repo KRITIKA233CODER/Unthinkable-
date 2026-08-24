@@ -1,1 +1,314 @@
-<svg id="mermaid-svg" width="100%" xmlns="http://www.w3.org/2000/svg" class="flowchart" style="max-width: 811px;" viewBox="0 0 811 1860" role="graphics-document document" aria-roledescription="flowchart-v2" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml">@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css");</style><style>#mermaid-svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;fill:#333;}@keyframes edge-animation-frame{from{stroke-dashoffset:0;}}@keyframes dash{to{stroke-dashoffset:0;}}#mermaid-svg .edge-animation-slow{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 50s linear infinite;stroke-linecap:round;}#mermaid-svg .edge-animation-fast{stroke-dasharray:9,5!important;stroke-dashoffset:900;animation:dash 20s linear infinite;stroke-linecap:round;}#mermaid-svg .error-icon{fill:#552222;}#mermaid-svg .error-text{fill:#552222;stroke:#552222;}#mermaid-svg .edge-thickness-normal{stroke-width:1px;}#mermaid-svg .edge-thickness-thick{stroke-width:3.5px;}#mermaid-svg .edge-pattern-solid{stroke-dasharray:0;}#mermaid-svg .edge-thickness-invisible{stroke-width:0;fill:none;}#mermaid-svg .edge-pattern-dashed{stroke-dasharray:3;}#mermaid-svg .edge-pattern-dotted{stroke-dasharray:2;}#mermaid-svg .marker{fill:#333333;stroke:#333333;}#mermaid-svg .marker.cross{stroke:#333333;}#mermaid-svg svg{font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:16px;}#mermaid-svg p{margin:0;}#mermaid-svg .label{font-family:"trebuchet ms",verdana,arial,sans-serif;color:#333;}#mermaid-svg .cluster-label text{fill:#333;}#mermaid-svg .cluster-label span{color:#333;}#mermaid-svg .cluster-label span p{background-color:transparent;}#mermaid-svg .label text,#mermaid-svg span{fill:#333;color:#333;}#mermaid-svg .node rect,#mermaid-svg .node circle,#mermaid-svg .node ellipse,#mermaid-svg .node polygon,#mermaid-svg .node path{fill:#ECECFF;stroke:#9370DB;stroke-width:1px;}#mermaid-svg .rough-node .label text,#mermaid-svg .node .label text,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-anchor:middle;}#mermaid-svg .node .katex path{fill:#000;stroke:#000;stroke-width:1px;}#mermaid-svg .rough-node .label,#mermaid-svg .node .label,#mermaid-svg .image-shape .label,#mermaid-svg .icon-shape .label{text-align:center;}#mermaid-svg .node.clickable{cursor:pointer;}#mermaid-svg .root .anchor path{fill:#333333!important;stroke-width:0;stroke:#333333;}#mermaid-svg .arrowheadPath{fill:#333333;}#mermaid-svg .edgePath .path{stroke:#333333;stroke-width:1px;}#mermaid-svg .flowchart-link{stroke:#333333;fill:none;}#mermaid-svg .edgeLabel{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .edgeLabel p{background-color:rgba(232,232,232, 0.8);}#mermaid-svg .edgeLabel rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .labelBkg{background-color:rgba(232, 232, 232, 0.5);}#mermaid-svg .cluster rect{fill:#ffffde;stroke:#aaaa33;stroke-width:1px;}#mermaid-svg .cluster text{fill:#333;}#mermaid-svg .cluster span{color:#333;}#mermaid-svg div.mermaidTooltip{position:absolute;text-align:center;max-width:200px;padding:2px;font-family:"trebuchet ms",verdana,arial,sans-serif;font-size:12px;background:hsl(80, 100%, 96.2745098039%);border:1px solid #aaaa33;border-radius:2px;pointer-events:none;z-index:100;}#mermaid-svg .flowchartTitleText{text-anchor:middle;font-size:18px;fill:#333;}#mermaid-svg rect.text{fill:none;stroke-width:0;}#mermaid-svg .icon-shape,#mermaid-svg .image-shape{background-color:rgba(232,232,232, 0.8);text-align:center;}#mermaid-svg .icon-shape p,#mermaid-svg .image-shape p{background-color:rgba(232,232,232, 0.8);padding:2px;}#mermaid-svg .icon-shape .label rect,#mermaid-svg .image-shape .label rect{opacity:0.5;background-color:rgba(232,232,232, 0.8);fill:rgba(232,232,232, 0.8);}#mermaid-svg .label-icon{display:inline-block;height:1em;overflow:visible;vertical-align:-0.125em;}#mermaid-svg .node .label-icon path{fill:currentColor;stroke:revert;stroke-width:revert;}#mermaid-svg .node .neo-node{stroke:#9370DB;}#mermaid-svg [data-look="neo"].node rect,#mermaid-svg [data-look="neo"].cluster rect,#mermaid-svg [data-look="neo"].node polygon{stroke:#9370DB;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#mermaid-svg [data-look="neo"].swimlane.cluster rect{filter:none;}#mermaid-svg [data-look="neo"].node path{stroke:#9370DB;stroke-width:1px;}#mermaid-svg [data-look="neo"].node .outer-path{filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#mermaid-svg [data-look="neo"].node .neo-line path{stroke:#9370DB;filter:none;}#mermaid-svg [data-look="neo"].node circle{stroke:#9370DB;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#mermaid-svg [data-look="neo"].node circle .state-start{fill:#000000;}#mermaid-svg [data-look="neo"].icon-shape .icon{fill:#9370DB;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#mermaid-svg [data-look="neo"].icon-shape .icon-neo path{stroke:#9370DB;filter:drop-shadow(1px 2px 2px rgba(185, 185, 185, 1));}#mermaid-svg :root{--mermaid-font-family:"trebuchet ms",verdana,arial,sans-serif;}</style><g><marker id="mermaid-svg_flowchart-v2-pointEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-pointStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="4.5" refY="5" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 5 L 10 10 L 10 0 z" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-pointEnd-margin" class="marker flowchart-v2" viewBox="0 0 11.5 14" refX="11.5" refY="7" markerUnits="userSpaceOnUse" markerWidth="10.5" markerHeight="14" orient="auto"><path d="M 0 0 L 11.5 7 L 0 14 z" class="arrowMarkerPath" style="stroke-width: 0; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-pointStart-margin" class="marker flowchart-v2" viewBox="0 0 11.5 14" refX="1" refY="7" markerUnits="userSpaceOnUse" markerWidth="11.5" markerHeight="14" orient="auto"><polygon points="0,7 11.5,14 11.5,0" class="arrowMarkerPath" style="stroke-width: 0; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleEnd" class="marker flowchart-v2" viewBox="0 0 10 10" refX="11" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleStart" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-1" refY="5" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleEnd-margin" class="marker flowchart-v2" viewBox="0 0 10 10" refY="5" refX="12.25" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 0; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-circleStart-margin" class="marker flowchart-v2" viewBox="0 0 10 10" refX="-2" refY="5" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" orient="auto"><circle cx="5" cy="5" r="5" class="arrowMarkerPath" style="stroke-width: 0; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossEnd" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="12" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossStart" class="marker cross flowchart-v2" viewBox="0 0 11 11" refX="-1" refY="5.2" markerUnits="userSpaceOnUse" markerWidth="11" markerHeight="11" orient="auto"><path d="M 1,1 l 9,9 M 10,1 l -9,9" class="arrowMarkerPath" style="stroke-width: 2; stroke-dasharray: 1, 0;"/></marker><marker id="mermaid-svg_flowchart-v2-crossEnd-margin" class="marker cross flowchart-v2" viewBox="0 0 15 15" refX="17.7" refY="7.5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto"><path d="M 1,1 L 14,14 M 1,14 L 14,1" class="arrowMarkerPath" style="stroke-width: 2.5;"/></marker><marker id="mermaid-svg_flowchart-v2-crossStart-margin" class="marker cross flowchart-v2" viewBox="0 0 15 15" refX="-3.5" refY="7.5" markerUnits="userSpaceOnUse" markerWidth="12" markerHeight="12" orient="auto"><path d="M 1,1 L 14,14 M 1,14 L 14,1" class="arrowMarkerPath" style="stroke-width: 2.5; stroke-dasharray: 1, 0;"/></marker><g class="root"><g class="clusters"><g class="cluster " id="mermaid-svg-subGraph2" data-look="classic"><rect style="" x="8" y="1468" width="795" height="384"/><g class="cluster-label " transform="translate(316.1328125, 1468)"><foreignObject width="178.734375" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5;"><span class="nodeLabel "><p>Follow-Up &amp; Notifications</p></span></div></foreignObject></g></g><g class="cluster " id="mermaid-svg-subGraph1" data-look="classic"><rect style="" x="163" y="906" width="330" height="512"/><g class="cluster-label " transform="translate(273.75, 906)"><foreignObject width="108.5" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5;"><span class="nodeLabel "><p>Doctor Journey</p></span></div></foreignObject></g></g><g class="cluster " id="mermaid-svg-subGraph0" data-look="classic"><rect style="" x="163" y="8" width="567.5" height="848"/><g class="cluster-label " transform="translate(391.15625, 8)"><foreignObject width="111.1875" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5;"><span class="nodeLabel "><p>Patient Journey</p></span></div></foreignObject></g></g></g><g class="edgePaths"><path d="M483,111L483,115.167C483,119.333,483,127.667,483,135.333C483,143,483,150,483,153.5L483,157" id="mermaid-svg-L_A_B_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_A_B_0" data-points="W3sieCI6NDgzLCJ5IjoxMTF9LHsieCI6NDgzLCJ5IjoxMzZ9LHsieCI6NDgzLCJ5IjoxNjF9XQ==" data-look="classic" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M483,215L483,219.167C483,223.333,483,231.667,483,239.333C483,247,483,254,483,257.5L483,261" id="mermaid-svg-L_B_C_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_B_C_0" data-points="W3sieCI6NDgzLCJ5IjoyMTV9LHsieCI6NDgzLCJ5IjoyNDB9LHsieCI6NDgzLCJ5IjoyNjV9XQ==" data-look="classic" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M483,343L483,347.167C483,351.333,483,359.667,483,367.333C483,375,483,382,483,385.5L483,389" id="mermaid-svg-L_C_D_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_C_D_0" data-points="W3sieCI6NDgzLCJ5IjozNDN9LHsieCI6NDgzLCJ5IjozNjh9LHsieCI6NDgzLCJ5IjozOTN9XQ==" data-look="classic" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M483,471L483,475.167C483,479.333,483,487.667,483,495.333C483,503,483,510,483,513.5L483,517" id="mermaid-svg-L_D_E_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_D_E_0" data-points="W3sieCI6NDgzLCJ5Ijo0NzF9LHsieCI6NDgzLCJ5Ijo0OTZ9LHsieCI6NDgzLCJ5Ijo1MjF9XQ==" data-look="classic" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M402.519,575L390.099,579.167C377.679,583.333,352.84,591.667,340.42,599.333C328,607,328,614,328,617.5L328,621" id="mermaid-svg-L_E_F_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_E_F_0" data-points="W3sieCI6NDAyLjUxOTIzMDc2OTIzMDgsInkiOjU3NX0seyJ4IjozMjgsInkiOjYwMH0seyJ4IjozMjgsInkiOjYyNX1d" data-look="classic" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M328,703L328,707.167C328,711.333,328,719.667,328,727.333C328,735,328,742,328,745.5L328,749" id="mermaid-svg-L_F_G_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_F_G_0" data-points="W3sieCI6MzI4LCJ5Ijo3MDN9LHsieCI6MzI4LCJ5Ijo3Mjh9LHsieCI6MzI4LCJ5Ijo3NTN9XQ==" data-look="classic" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M328,831L328,835.167C328,839.333,328,847.667,328,856C328,864.333,328,872.667,328,881C328,889.333,328,897.667,328,905.333C328,913,328,920,328,923.5L328,927" id="mermaid-svg-L_G_H_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_G_H_0" data-points="W3sieCI6MzI4LCJ5Ijo4MzF9LHsieCI6MzI4LCJ5Ijo4NTZ9LHsieCI6MzI4LCJ5Ijo4ODF9LHsieCI6MzI4LCJ5Ijo5MDZ9LHsieCI6MzI4LCJ5Ijo5MzF9XQ==" data-look="classic" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M328,1009L328,1013.167C328,1017.333,328,1025.667,328,1033.333C328,1041,328,1048,328,1051.5L328,1055" id="mermaid-svg-L_H_I_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_H_I_0" data-points="W3sieCI6MzI4LCJ5IjoxMDA5fSx7IngiOjMyOCwieSI6MTAzNH0seyJ4IjozMjgsInkiOjEwNTl9XQ==" data-look="classic" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M328,1137L328,1141.167C328,1145.333,328,1153.667,328,1161.333C328,1169,328,1176,328,1179.5L328,1183" id="mermaid-svg-L_I_J_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_I_J_0" data-points="W3sieCI6MzI4LCJ5IjoxMTM3fSx7IngiOjMyOCwieSI6MTE2Mn0seyJ4IjozMjgsInkiOjExODd9XQ==" data-look="classic" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M328,1265L328,1269.167C328,1273.333,328,1281.667,328,1289.333C328,1297,328,1304,328,1307.5L328,1311" id="mermaid-svg-L_J_K_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_J_K_0" data-points="W3sieCI6MzI4LCJ5IjoxMjY1fSx7IngiOjMyOCwieSI6MTI5MH0seyJ4IjozMjgsInkiOjEzMTV9XQ==" data-look="classic" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M328,1393L328,1397.167C328,1401.333,328,1409.667,328,1418C328,1426.333,328,1434.667,328,1443C328,1451.333,328,1459.667,328,1467.333C328,1475,328,1482,328,1485.5L328,1489" id="mermaid-svg-L_K_L_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_K_L_0" data-points="W3sieCI6MzI4LCJ5IjoxMzkzfSx7IngiOjMyOCwieSI6MTQxOH0seyJ4IjozMjgsInkiOjE0NDN9LHsieCI6MzI4LCJ5IjoxNDY4fSx7IngiOjMyOCwieSI6MTQ5M31d" data-look="classic" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M233.547,1571L223.456,1575.167C213.365,1579.333,193.182,1587.667,183.091,1595.333C173,1603,173,1610,173,1613.5L173,1617" id="mermaid-svg-L_L_M_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_L_M_0" data-points="W3sieCI6MjMzLjU0Njg3NSwieSI6MTU3MX0seyJ4IjoxNzMsInkiOjE1OTZ9LHsieCI6MTczLCJ5IjoxNjIxfV0=" data-look="classic" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M422.453,1571L432.544,1575.167C442.635,1579.333,462.818,1587.667,472.909,1595.333C483,1603,483,1610,483,1613.5L483,1617" id="mermaid-svg-L_L_N_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_L_N_0" data-points="W3sieCI6NDIyLjQ1MzEyNSwieSI6MTU3MX0seyJ4Ijo0ODMsInkiOjE1OTZ9LHsieCI6NDgzLCJ5IjoxNjIxfV0=" data-look="classic" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M483,1699L483,1703.167C483,1707.333,483,1715.667,483,1723.333C483,1731,483,1738,483,1741.5L483,1745" id="mermaid-svg-L_N_O_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_N_O_0" data-points="W3sieCI6NDgzLCJ5IjoxNjk5fSx7IngiOjQ4MywieSI6MTcyNH0seyJ4Ijo0ODMsInkiOjE3NDl9XQ==" data-look="classic" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/><path d="M563.481,575L575.901,579.167C588.321,583.333,613.16,591.667,625.58,606.5C638,621.333,638,642.667,638,664C638,685.333,638,706.667,638,728C638,749.333,638,770.667,638,792C638,813.333,638,834.667,638,849.5C638,864.333,638,872.667,638,881C638,889.333,638,897.667,638,912.5C638,927.333,638,948.667,638,970C638,991.333,638,1012.667,638,1034C638,1055.333,638,1076.667,638,1098C638,1119.333,638,1140.667,638,1162C638,1183.333,638,1204.667,638,1226C638,1247.333,638,1268.667,638,1290C638,1311.333,638,1332.667,638,1354C638,1375.333,638,1396.667,638,1411.5C638,1426.333,638,1434.667,638,1443C638,1451.333,638,1459.667,638,1467.333C638,1475,638,1482,638,1485.5L638,1489" id="mermaid-svg-L_E_P_0" class=" edge-thickness-normal edge-pattern-solid edge-thickness-normal edge-pattern-solid flowchart-link" style=";" data-edge="true" data-et="edge" data-id="L_E_P_0" data-points="W3sieCI6NTYzLjQ4MDc2OTIzMDc2OTMsInkiOjU3NX0seyJ4Ijo2MzgsInkiOjYwMH0seyJ4Ijo2MzgsInkiOjY2NH0seyJ4Ijo2MzgsInkiOjcyOH0seyJ4Ijo2MzgsInkiOjc5Mn0seyJ4Ijo2MzgsInkiOjg1Nn0seyJ4Ijo2MzgsInkiOjg4MX0seyJ4Ijo2MzgsInkiOjkwNn0seyJ4Ijo2MzgsInkiOjk3MH0seyJ4Ijo2MzgsInkiOjEwMzR9LHsieCI6NjM4LCJ5IjoxMDk4fSx7IngiOjYzOCwieSI6MTE2Mn0seyJ4Ijo2MzgsInkiOjEyMjZ9LHsieCI6NjM4LCJ5IjoxMjkwfSx7IngiOjYzOCwieSI6MTM1NH0seyJ4Ijo2MzgsInkiOjE0MTh9LHsieCI6NjM4LCJ5IjoxNDQzfSx7IngiOjYzOCwieSI6MTQ2OH0seyJ4Ijo2MzgsInkiOjE0OTN9XQ==" data-look="classic" marker-end="url(#mermaid-svg_flowchart-v2-pointEnd)"/></g><g class="edgeLabels"><g class="edgeLabel"><g class="label" data-id="L_A_B_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_B_C_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_C_D_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_D_E_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_E_F_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_F_G_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_G_H_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_H_I_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_I_J_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_J_K_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_K_L_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_L_M_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_L_N_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_N_O_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g><g class="edgeLabel"><g class="label" data-id="L_E_P_0" transform="translate(0, 0)"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" class="labelBkg" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="edgeLabel "></span></div></foreignObject></g></g></g><g class="nodes"><g class="node default  " id="mermaid-svg-flowchart-A-0" data-look="classic" transform="translate(483, 72)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Select Specialization &amp; Doctor</p></span></div></foreignObject></g></g><g class="node default  " id="mermaid-svg-flowchart-B-1" data-look="classic" transform="translate(483, 188)"><rect class="basic label-container" style="" x="-121.90625" y="-27" width="243.8125" height="54"/><g class="label" style="" transform="translate(-91.90625, -12)"><rect/><foreignObject width="183.8125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Pick Date &amp; Available Slot</p></span></div></foreignObject></g></g><g class="node default  " id="mermaid-svg-flowchart-C-3" data-look="classic" transform="translate(483, 304)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Atomic 5-Min Slot Hold Lock</p></span></div></foreignObject></g></g><g class="node default  " id="mermaid-svg-flowchart-D-5" data-look="classic" transform="translate(483, 432)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Describe Symptoms / Voice Input</p></span></div></foreignObject></g></g><g class="node default  " id="mermaid-svg-flowchart-E-7" data-look="classic" transform="translate(483, 548)"><rect class="basic label-container" style="" x="-89.140625" y="-27" width="178.28125" height="54"/><g class="label" style="" transform="translate(-59.140625, -12)"><rect/><foreignObject width="118.28125" height="24"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table-cell; white-space: nowrap; line-height: 1.5; max-width: 200px; text-align: center;"><span class="nodeLabel "><p>Confirm Booking</p></span></div></foreignObject></g></g><g class="node default  " id="mermaid-svg-flowchart-F-9" data-look="classic" transform="translate(328, 664)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Gemini Pre-Visit Triage Extraction</p></span></div></foreignObject></g></g><g class="node default  " id="mermaid-svg-flowchart-G-11" data-look="classic" transform="translate(328, 792)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Scheduled Appointment Stored</p></span></div></foreignObject></g></g><g class="node default  " id="mermaid-svg-flowchart-H-13" data-look="classic" transform="translate(328, 970)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Doctor Reviews Queue &amp; Urgency Score</p></span></div></foreignObject></g></g><g class="node default  " id="mermaid-svg-flowchart-I-15" data-look="classic" transform="translate(328, 1098)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Conduct Consultation &amp; Record Notes</p></span></div></foreignObject></g></g><g class="node default  " id="mermaid-svg-flowchart-J-17" data-look="classic" transform="translate(328, 1226)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Submit Clinical Diagnosis &amp; Rx</p></span></div></foreignObject></g></g><g class="node default  " id="mermaid-svg-flowchart-K-19" data-look="classic" transform="translate(328, 1354)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Gemini Post-Visit Translation</p></span></div></foreignObject></g></g><g class="node default  " id="mermaid-svg-flowchart-L-21" data-look="classic" transform="translate(328, 1532)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Structured Care Plan &amp; Rx Stored</p></span></div></foreignObject></g></g><g class="node default  " id="mermaid-svg-flowchart-M-23" data-look="classic" transform="translate(173, 1660)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Patient Views Care Plan in Portal</p></span></div></foreignObject></g></g><g class="node default  " id="mermaid-svg-flowchart-N-25" data-look="classic" transform="translate(483, 1660)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Background Reminder Queue</p></span></div></foreignObject></g></g><g class="node default  " id="mermaid-svg-flowchart-O-27" data-look="classic" transform="translate(483, 1788)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Nodemailer Medication Reminders</p></span></div></foreignObject></g></g><g class="node default  " id="mermaid-svg-flowchart-P-29" data-look="classic" transform="translate(638, 1532)"><rect class="basic label-container" style="" x="-130" y="-39" width="260" height="78"/><g class="label" style="" transform="translate(-100, -24)"><rect/><foreignObject width="200" height="48"><div xmlns="http://www.w3.org/1999/xhtml" style="display: table; white-space: break-spaces; line-height: 1.5; max-width: 200px; text-align: center; width: 200px;"><span class="nodeLabel "><p>Google Calendar &amp; Confirmation Email</p></span></div></foreignObject></g></g></g></g></g><defs><filter id="mermaid-svg-drop-shadow" height="130%" width="130%"><feDropShadow dx="4" dy="4" stdDeviation="0" flood-opacity="0.06" flood-color="#000000"/></filter></defs><defs><filter id="mermaid-svg-drop-shadow-small" height="150%" width="150%"><feDropShadow dx="2" dy="2" stdDeviation="0" flood-opacity="0.06" flood-color="#000000"/></filter></defs></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="100%" height="100%" style="background:#090d16; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <defs>
+    <!-- Background Gradients -->
+    <radialGradient id="bgGlow1" cx="20%" cy="30%" r="60%">
+      <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.12" />
+      <stop offset="100%" stop-color="#090d16" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="bgGlow2" cx="80%" cy="70%" r="60%">
+      <stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.12" />
+      <stop offset="100%" stop-color="#090d16" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="cardGlowCyan" cx="50%" cy="0%" r="80%">
+      <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.15" />
+      <stop offset="100%" stop-color="#0f172a" stop-opacity="0.95" />
+    </radialGradient>
+    <radialGradient id="cardGlowPurple" cx="50%" cy="0%" r="80%">
+      <stop offset="0%" stop-color="#a855f7" stop-opacity="0.15" />
+      <stop offset="100%" stop-color="#0f172a" stop-opacity="0.95" />
+    </radialGradient>
+    <radialGradient id="cardGlowEmerald" cx="50%" cy="0%" r="80%">
+      <stop offset="0%" stop-color="#10b981" stop-opacity="0.15" />
+      <stop offset="100%" stop-color="#0f172a" stop-opacity="0.95" />
+    </radialGradient>
+    <radialGradient id="cardGlowAmber" cx="50%" cy="0%" r="80%">
+      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.15" />
+      <stop offset="100%" stop-color="#0f172a" stop-opacity="0.95" />
+    </radialGradient>
+
+    <!-- Connector Line Gradients -->
+    <linearGradient id="lineCtoP" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#06b6d4" />
+      <stop offset="100%" stop-color="#a855f7" />
+    </linearGradient>
+    <linearGradient id="linePtoE" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#a855f7" />
+      <stop offset="100%" stop-color="#10b981" />
+    </linearGradient>
+    <linearGradient id="lineEtoA" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#f59e0b" />
+    </linearGradient>
+
+    <!-- Drop Shadows -->
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.6" />
+    </filter>
+    <filter id="glowCyan" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Background Layer -->
+  <rect width="1280" height="720" fill="#090d16" />
+  <rect width="1280" height="720" fill="url(#bgGlow1)" />
+  <rect width="1280" height="720" fill="url(#bgGlow2)" />
+
+  <!-- Subtle Background Grid Lines -->
+  <g opacity="0.07" stroke="#ffffff" stroke-width="1">
+    <line x1="0" y1="120" x2="1280" y2="120" />
+    <line x1="0" y1="240" x2="1280" y2="240" />
+    <line x1="0" y1="360" x2="1280" y2="360" />
+    <line x1="0" y1="480" x2="1280" y2="480" />
+    <line x1="0" y1="600" x2="1280" y2="600" />
+    <line x1="160" y1="0" x2="160" y2="720" />
+    <line x1="320" y1="0" x2="320" y2="720" />
+    <line x1="480" y1="0" x2="480" y2="720" />
+    <line x1="640" y1="0" x2="640" y2="720" />
+    <line x1="800" y1="0" x2="800" y2="720" />
+    <line x1="960" y1="0" x2="960" y2="720" />
+    <line x1="1120" y1="0" x2="1120" y2="720" />
+  </g>
+
+  <!-- Header Section -->
+  <g transform="translate(640, 55)" text-anchor="middle">
+    <rect x="-180" y="-32" width="360" height="26" rx="13" fill="#06b6d4" fill-opacity="0.1" stroke="#06b6d4" stroke-opacity="0.3" stroke-width="1" />
+    <text x="0" y="-15" fill="#38bdf8" font-size="12" font-weight="700" letter-spacing="1.5">CLINICAL LIFECYCLE &amp; SYSTEM ARCHITECTURE</text>
+    <text x="0" y="24" fill="#ffffff" font-size="28" font-weight="800" letter-spacing="-0.5">HealthPulse AI End-to-End Workflow</text>
+    <text x="0" y="48" fill="#94a3b8" font-size="13" font-weight="400">Intelligent Pre-Visit Triage &bull; ACID Slot Concurrency &bull; Doctor AI Consultation &bull; Follow-Up Loop</text>
+  </g>
+
+  <!-- Flow Connection Curves (Under Cards) -->
+  <g fill="none" stroke-width="3" stroke-linecap="round" opacity="0.85">
+    <!-- Phase 1 to Phase 2 -->
+    <path d="M 330 395 C 345 395, 345 395, 360 395" stroke="url(#lineCtoP)" stroke-dasharray="6,4" />
+    <polygon points="362,395 354,390 354,400" fill="#a855f7" />
+
+    <!-- Phase 2 to Phase 3 -->
+    <path d="M 640 395 C 655 395, 655 395, 670 395" stroke="url(#linePtoE)" stroke-dasharray="6,4" />
+    <polygon points="672,395 664,390 664,400" fill="#10b981" />
+
+    <!-- Phase 3 to Phase 4 -->
+    <path d="M 950 395 C 965 395, 965 395, 980 395" stroke="url(#lineEtoA)" stroke-dasharray="6,4" />
+    <polygon points="982,395 974,390 974,400" fill="#f59e0b" />
+  </g>
+
+  <!-- ==================== PHASE 1 ==================== -->
+  <g transform="translate(50, 135)">
+    <!-- Column Card Container -->
+    <rect width="280" height="535" rx="18" fill="url(#cardGlowCyan)" stroke="#06b6d4" stroke-opacity="0.35" stroke-width="1.5" filter="url(#shadow)" />
+    
+    <!-- Top Pill Badge -->
+    <rect x="20" y="20" width="34" height="34" rx="10" fill="#06b6d4" fill-opacity="0.2" stroke="#06b6d4" stroke-width="1.5" />
+    <text x="37" y="42" fill="#38bdf8" font-size="16" font-weight="800" text-anchor="middle">1</text>
+    
+    <text x="66" y="34" fill="#ffffff" font-size="16" font-weight="700">Patient Intake</text>
+    <text x="66" y="49" fill="#06b6d4" font-size="12" font-weight="600">&amp; Slot Hold Engine</text>
+
+    <!-- Sub-step 1.1 -->
+    <g transform="translate(18, 75)">
+      <rect width="244" height="95" rx="12" fill="#1e293b" fill-opacity="0.75" stroke="#334155" stroke-width="1" />
+      <circle cx="24" cy="24" r="10" fill="#06b6d4" fill-opacity="0.15" />
+      <text x="24" y="28" fill="#38bdf8" font-size="11" font-weight="700" text-anchor="middle">A</text>
+      <text x="42" y="27" fill="#f1f5f9" font-size="13" font-weight="700">Specialist Selection</text>
+      <text x="18" y="52" fill="#94a3b8" font-size="11.5" font-weight="400">Filter doctors by specialty</text>
+      <text x="18" y="70" fill="#64748b" font-size="11" font-weight="400">(Cardiology, Neurology, etc.)</text>
+    </g>
+
+    <!-- Sub-step 1.2 (Atomic Hold) -->
+    <g transform="translate(18, 185)">
+      <rect width="244" height="135" rx="12" fill="#1e293b" fill-opacity="0.9" stroke="#06b6d4" stroke-opacity="0.5" stroke-width="1.2" />
+      <circle cx="24" cy="24" r="10" fill="#06b6d4" fill-opacity="0.25" />
+      <text x="24" y="28" fill="#38bdf8" font-size="11" font-weight="700" text-anchor="middle">B</text>
+      <text x="42" y="27" fill="#38bdf8" font-size="13" font-weight="700">5-Min Atomic Slot Lock</text>
+      <text x="18" y="54" fill="#cbd5e1" font-size="11.5" font-weight="500">&bull; Dynamic slot math engine</text>
+      <text x="18" y="73" fill="#cbd5e1" font-size="11.5" font-weight="500">&bull; MongoDB TTL exclusive hold</text>
+      <text x="18" y="92" fill="#cbd5e1" font-size="11.5" font-weight="500">&bull; Live countdown timer</text>
+      <rect x="18" y="103" width="208" height="20" rx="6" fill="#06b6d4" fill-opacity="0.15" />
+      <text x="122" y="117" fill="#38bdf8" font-size="10" font-weight="700" text-anchor="middle">Physical Concurrency Lock</text>
+    </g>
+
+    <!-- Sub-step 1.3 -->
+    <g transform="translate(18, 335)">
+      <rect width="244" height="105" rx="12" fill="#1e293b" fill-opacity="0.75" stroke="#334155" stroke-width="1" />
+      <circle cx="24" cy="24" r="10" fill="#06b6d4" fill-opacity="0.15" />
+      <text x="24" y="28" fill="#38bdf8" font-size="11" font-weight="700" text-anchor="middle">C</text>
+      <text x="42" y="27" fill="#f1f5f9" font-size="13" font-weight="700">Multimodal Intake</text>
+      <text x="18" y="52" fill="#94a3b8" font-size="11.5" font-weight="400">Describe medical symptoms</text>
+      <text x="18" y="70" fill="#94a3b8" font-size="11.5" font-weight="400">via keyboard or </text>
+      <text x="100" y="70" fill="#38bdf8" font-size="11.5" font-weight="700">🎙️ Voice Input</text>
+      <text x="18" y="88" fill="#64748b" font-size="10.5" font-weight="400">(Web Speech API integration)</text>
+    </g>
+
+    <!-- Sub-step 1.4 -->
+    <g transform="translate(18, 455)">
+      <rect width="244" height="60" rx="10" fill="#0f766e" fill-opacity="0.25" stroke="#14b8a6" stroke-opacity="0.4" stroke-width="1" />
+      <text x="122" y="26" fill="#2dd4bf" font-size="12" font-weight="700" text-anchor="middle">Confirm &amp; Commit</text>
+      <text x="122" y="44" fill="#99f6e4" font-size="10.5" font-weight="500" text-anchor="middle">MongoDB Transaction Lock (E11000)</text>
+    </g>
+  </g>
+
+  <!-- ==================== PHASE 2 ==================== -->
+  <g transform="translate(360, 135)">
+    <!-- Column Card Container -->
+    <rect width="280" height="535" rx="18" fill="url(#cardGlowPurple)" stroke="#a855f7" stroke-opacity="0.35" stroke-width="1.5" filter="url(#shadow)" />
+    
+    <!-- Top Pill Badge -->
+    <rect x="20" y="20" width="34" height="34" rx="10" fill="#a855f7" fill-opacity="0.2" stroke="#a855f7" stroke-width="1.5" />
+    <text x="37" y="42" fill="#c084fc" font-size="16" font-weight="800" text-anchor="middle">2</text>
+    
+    <text x="66" y="34" fill="#ffffff" font-size="16" font-weight="700">Gemini 1.5 Flash</text>
+    <text x="66" y="49" fill="#c084fc" font-size="12" font-weight="600">AI Pre-Visit Triage</text>
+
+    <!-- Sub-step 2.1 -->
+    <g transform="translate(18, 75)">
+      <rect width="244" height="95" rx="12" fill="#1e293b" fill-opacity="0.75" stroke="#334155" stroke-width="1" />
+      <circle cx="24" cy="24" r="10" fill="#a855f7" fill-opacity="0.15" />
+      <text x="24" y="28" fill="#c084fc" font-size="11" font-weight="700" text-anchor="middle">A</text>
+      <text x="42" y="27" fill="#f1f5f9" font-size="13" font-weight="700">Urgency Classification</text>
+      <text x="18" y="52" fill="#94a3b8" font-size="11.5" font-weight="400">Deterministic risk rating:</text>
+      <g transform="translate(18, 62)">
+        <rect x="0" y="0" width="46" height="20" rx="4" fill="#ef4444" fill-opacity="0.2" />
+        <text x="23" y="14" fill="#f87171" font-size="10" font-weight="700" text-anchor="middle">HIGH</text>
+        <rect x="52" y="0" width="46" height="20" rx="4" fill="#f59e0b" fill-opacity="0.2" />
+        <text x="75" y="14" fill="#fbbf24" font-size="10" font-weight="700" text-anchor="middle">MED</text>
+        <rect x="104" y="0" width="46" height="20" rx="4" fill="#10b981" fill-opacity="0.2" />
+        <text x="127" y="14" fill="#34d399" font-size="10" font-weight="700" text-anchor="middle">LOW</text>
+      </g>
+    </g>
+
+    <!-- Sub-step 2.2 -->
+    <g transform="translate(18, 185)">
+      <rect width="244" height="100" rx="12" fill="#1e293b" fill-opacity="0.75" stroke="#334155" stroke-width="1" />
+      <circle cx="24" cy="24" r="10" fill="#a855f7" fill-opacity="0.15" />
+      <text x="24" y="28" fill="#c084fc" font-size="11" font-weight="700" text-anchor="middle">B</text>
+      <text x="42" y="27" fill="#f1f5f9" font-size="13" font-weight="700">Chief Complaint</text>
+      <text x="18" y="52" fill="#94a3b8" font-size="11.5" font-weight="400">Synthesizes subjective text</text>
+      <text x="18" y="70" fill="#94a3b8" font-size="11.5" font-weight="400">into 1 structured clinical</text>
+      <text x="18" y="88" fill="#c084fc" font-size="11" font-weight="600">diagnostic summary sentence</text>
+    </g>
+
+    <!-- Sub-step 2.3 -->
+    <g transform="translate(18, 300)">
+      <rect width="244" height="120" rx="12" fill="#1e293b" fill-opacity="0.9" stroke="#a855f7" stroke-opacity="0.5" stroke-width="1.2" />
+      <circle cx="24" cy="24" r="10" fill="#a855f7" fill-opacity="0.25" />
+      <text x="24" y="28" fill="#c084fc" font-size="11" font-weight="700" text-anchor="middle">C</text>
+      <text x="42" y="27" fill="#c084fc" font-size="13" font-weight="700">Suggested Questions</text>
+      <text x="18" y="52" fill="#cbd5e1" font-size="11.5" font-weight="400">&bull; 3 proactive doctor questions</text>
+      <text x="18" y="72" fill="#cbd5e1" font-size="11.5" font-weight="400">&bull; Context-tailored diagnostics</text>
+      <text x="18" y="92" fill="#cbd5e1" font-size="11.5" font-weight="400">&bull; Speeds up visit intake by 40%</text>
+    </g>
+
+    <!-- Sub-step 2.4 (Fallback Shield) -->
+    <g transform="translate(18, 435)">
+      <rect width="244" height="80" rx="10" fill="#581c87" fill-opacity="0.25" stroke="#9333ea" stroke-opacity="0.4" stroke-width="1" />
+      <text x="122" y="25" fill="#e9d5ff" font-size="12" font-weight="700" text-anchor="middle">🛡️ Zero-Downtime Fallback</text>
+      <text x="18" y="46" fill="#d8b4fe" font-size="10.5" font-weight="400">If API key missing or timeout occurs,</text>
+      <text x="18" y="64" fill="#a855f7" font-size="10.5" font-weight="600">deterministic fallback executes seamlessly</text>
+    </g>
+  </g>
+
+  <!-- ==================== PHASE 3 ==================== -->
+  <g transform="translate(670, 135)">
+    <!-- Column Card Container -->
+    <rect width="280" height="535" rx="18" fill="url(#cardGlowEmerald)" stroke="#10b981" stroke-opacity="0.35" stroke-width="1.5" filter="url(#shadow)" />
+    
+    <!-- Top Pill Badge -->
+    <rect x="20" y="20" width="34" height="34" rx="10" fill="#10b981" fill-opacity="0.2" stroke="#10b981" stroke-width="1.5" />
+    <text x="37" y="42" fill="#34d399" font-size="16" font-weight="800" text-anchor="middle">3</text>
+    
+    <text x="66" y="34" fill="#ffffff" font-size="16" font-weight="700">Doctor Workspace</text>
+    <text x="66" y="49" fill="#34d399" font-size="12" font-weight="600">&amp; AI Care Plan</text>
+
+    <!-- Sub-step 3.1 -->
+    <g transform="translate(18, 75)">
+      <rect width="244" height="95" rx="12" fill="#1e293b" fill-opacity="0.75" stroke="#334155" stroke-width="1" />
+      <circle cx="24" cy="24" r="10" fill="#10b981" fill-opacity="0.15" />
+      <text x="24" y="28" fill="#34d399" font-size="11" font-weight="700" text-anchor="middle">A</text>
+      <text x="42" y="27" fill="#f1f5f9" font-size="13" font-weight="700">Triage Patient Queue</text>
+      <text x="18" y="52" fill="#94a3b8" font-size="11.5" font-weight="400">Live queue ordered by time</text>
+      <text x="18" y="70" fill="#94a3b8" font-size="11.5" font-weight="400">&amp; urgency; preview AI chief complaint</text>
+    </g>
+
+    <!-- Sub-step 3.2 -->
+    <g transform="translate(18, 185)">
+      <rect width="244" height="100" rx="12" fill="#1e293b" fill-opacity="0.75" stroke="#334155" stroke-width="1" />
+      <circle cx="24" cy="24" r="10" fill="#10b981" fill-opacity="0.15" />
+      <text x="24" y="28" fill="#34d399" font-size="11" font-weight="700" text-anchor="middle">B</text>
+      <text x="42" y="27" fill="#f1f5f9" font-size="13" font-weight="700">Consultation Notes</text>
+      <text x="18" y="52" fill="#94a3b8" font-size="11.5" font-weight="400">Doctor records clinical notes,</text>
+      <text x="18" y="70" fill="#94a3b8" font-size="11.5" font-weight="400">official diagnoses &amp; drug Rx</text>
+      <text x="18" y="88" fill="#64748b" font-size="10.5" font-weight="400">(e.g. Amoxicillin 500mg BD)</text>
+    </g>
+
+    <!-- Sub-step 3.3 (Post-Visit AI) -->
+    <g transform="translate(18, 300)">
+      <rect width="244" height="120" rx="12" fill="#1e293b" fill-opacity="0.9" stroke="#10b981" stroke-opacity="0.5" stroke-width="1.2" />
+      <circle cx="24" cy="24" r="10" fill="#10b981" fill-opacity="0.25" />
+      <text x="24" y="28" fill="#34d399" font-size="11" font-weight="700" text-anchor="middle">C</text>
+      <text x="42" y="27" fill="#34d399" font-size="13" font-weight="700">Gemini Care Plan</text>
+      <text x="18" y="52" fill="#cbd5e1" font-size="11.5" font-weight="400">&bull; Patient-friendly summary</text>
+      <text x="18" y="72" fill="#cbd5e1" font-size="11.5" font-weight="400">&bull; Structured dosage schedule</text>
+      <text x="18" y="92" fill="#cbd5e1" font-size="11.5" font-weight="400">&bull; Actionable follow-up timeline</text>
+    </g>
+
+    <!-- Sub-step 3.4 -->
+    <g transform="translate(18, 435)">
+      <rect width="244" height="80" rx="10" fill="#064e3b" fill-opacity="0.25" stroke="#059669" stroke-opacity="0.4" stroke-width="1" />
+      <text x="122" y="25" fill="#a7f3d0" font-size="12" font-weight="700" text-anchor="middle">🌴 Doctor Leave Engine</text>
+      <text x="18" y="46" fill="#6ee7b7" font-size="10.5" font-weight="400">Registers leave date, auto-cancels visits,</text>
+      <text x="18" y="64" fill="#34d399" font-size="10.5" font-weight="600">purges Google Cal &amp; emails patients</text>
+    </g>
+  </g>
+
+  <!-- ==================== PHASE 4 ==================== -->
+  <g transform="translate(980, 135)">
+    <!-- Column Card Container -->
+    <rect width="250" height="535" rx="18" fill="url(#cardGlowAmber)" stroke="#f59e0b" stroke-opacity="0.35" stroke-width="1.5" filter="url(#shadow)" />
+    
+    <!-- Top Pill Badge -->
+    <rect x="20" y="20" width="34" height="34" rx="10" fill="#f59e0b" fill-opacity="0.2" stroke="#f59e0b" stroke-width="1.5" />
+    <text x="37" y="42" fill="#fbbf24" font-size="16" font-weight="800" text-anchor="middle">4</text>
+    
+    <text x="66" y="34" fill="#ffffff" font-size="16" font-weight="700">Follow-Up</text>
+    <text x="66" y="49" fill="#fbbf24" font-size="12" font-weight="600">&amp; Notifications</text>
+
+    <!-- Sub-step 4.1 -->
+    <g transform="translate(16, 75)">
+      <rect width="218" height="110" rx="12" fill="#1e293b" fill-opacity="0.75" stroke="#334155" stroke-width="1" />
+      <circle cx="22" cy="22" r="10" fill="#3b82f6" fill-opacity="0.2" />
+      <text x="22" y="26" fill="#60a5fa" font-size="11" font-weight="700" text-anchor="middle">A</text>
+      <text x="38" y="25" fill="#f1f5f9" font-size="12.5" font-weight="700">Google Calendar</text>
+      <text x="14" y="48" fill="#94a3b8" font-size="11" font-weight="400">&bull; OAuth 2.0 calendar insert</text>
+      <text x="14" y="68" fill="#94a3b8" font-size="11" font-weight="400">&bull; Reschedule patch</text>
+      <text x="14" y="88" fill="#94a3b8" font-size="11" font-weight="400">&bull; Leave event delete</text>
+    </g>
+
+    <!-- Sub-step 4.2 -->
+    <g transform="translate(16, 200)">
+      <rect width="218" height="110" rx="12" fill="#1e293b" fill-opacity="0.75" stroke="#334155" stroke-width="1" />
+      <circle cx="22" cy="22" r="10" fill="#ec4899" fill-opacity="0.2" />
+      <text x="22" y="26" fill="#f472b6" font-size="11" font-weight="700" text-anchor="middle">B</text>
+      <text x="38" y="25" fill="#f1f5f9" font-size="12.5" font-weight="700">Nodemailer Dispatch</text>
+      <text x="14" y="48" fill="#94a3b8" font-size="11" font-weight="400">&bull; Instant booking email</text>
+      <text x="14" y="68" fill="#94a3b8" font-size="11" font-weight="400">&bull; Cancellation notice</text>
+      <text x="14" y="88" fill="#94a3b8" font-size="11" font-weight="400">&bull; Ethereal / Gmail SMTP</text>
+    </g>
+
+    <!-- Sub-step 4.3 (Retry Queue) -->
+    <g transform="translate(16, 325)">
+      <rect width="218" height="190" rx="12" fill="#1e293b" fill-opacity="0.9" stroke="#f59e0b" stroke-opacity="0.5" stroke-width="1.2" />
+      <circle cx="22" cy="22" r="10" fill="#f59e0b" fill-opacity="0.25" />
+      <text x="22" y="26" fill="#fbbf24" font-size="11" font-weight="700" text-anchor="middle">C</text>
+      <text x="38" y="25" fill="#fbbf24" font-size="12.5" font-weight="700">Reminder Queue</text>
+      <text x="14" y="50" fill="#cbd5e1" font-size="11" font-weight="500">&bull; MongoDB persistent job</text>
+      <text x="14" y="70" fill="#cbd5e1" font-size="11" font-weight="500">&bull; Exponential backoff:</text>
+      <text x="26" y="88" fill="#f59e0b" font-size="11.5" font-weight="700">nextRun = 2^attempts</text>
+      <text x="14" y="110" fill="#cbd5e1" font-size="11" font-weight="500">&bull; Max 5 retries limit</text>
+      <text x="14" y="130" fill="#cbd5e1" font-size="11" font-weight="500">&bull; Duplicate prevention</text>
+      <rect x="14" y="145" width="190" height="30" rx="6" fill="#f59e0b" fill-opacity="0.15" />
+      <text x="109" y="164" fill="#fbbf24" font-size="10.5" font-weight="700" text-anchor="middle">Survives Server Restarts</text>
+    </g>
+  </g>
+</svg>
