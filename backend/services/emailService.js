@@ -2,21 +2,24 @@ const nodemailer = require('nodemailer');
 
 /**
  * Creates a Nodemailer transporter.
- * Uses real SMTP if EMAIL_USER and EMAIL_PASS are set.
- * Otherwise uses Ethereal test accounts for development/tests.
+ * Uses real SMTP if EMAIL_USER and EMAIL_PASS are set in environment.
+ * Otherwise uses Ethereal test accounts for development and tests.
  */
 const getTransporter = async () => {
   const user = process.env.EMAIL_USER;
   const pass = process.env.EMAIL_PASS;
+  const service = process.env.EMAIL_SERVICE || 'gmail';
 
-  // Real SMTP (Production / Demo)
-  if (user && pass && user !== 'your_email@gmail.com' && pass !== 'your_app_password') {
+  // Real SMTP (Production / Demo with Gmail or Custom SMTP)
+  if (user && pass && !user.includes('your_email') && !pass.includes('your_app_password')) {
+    console.log(`[EMAIL_SERVICE] Initializing SMTP Transporter (Service: ${service}) for user: ${user.replace(/(.{2})(.*)(@.*)/, '$1***$3')}`);
     return {
       transporter: nodemailer.createTransport({
-        service: process.env.EMAIL_SERVICE || 'gmail',
+        service,
         auth: { user, pass }
       }),
-      type: 'SMTP'
+      type: 'SMTP',
+      service
     };
   }
 
@@ -33,11 +36,12 @@ const getTransporter = async () => {
           pass: testAccount.pass
         }
       }),
-      type: 'ETHEREAL'
+      type: 'ETHEREAL',
+      service: 'ethereal'
     };
   } catch (err) {
-    console.warn('Could not initialize Ethereal test email:', err.message);
-    return { transporter: null, type: 'NONE' };
+    console.warn('[EMAIL_SERVICE] Could not initialize Ethereal test email:', err.message);
+    return { transporter: null, type: 'NONE', service: 'none' };
   }
 };
 
@@ -46,12 +50,13 @@ const getTransporter = async () => {
  * EMAIL_SENT | EMAIL_FAILED | EMAIL_NOT_CONFIGURED
  */
 const safeSendMail = async (mailOptions) => {
-  const { transporter, type } = await getTransporter();
+  const { transporter, type, service } = await getTransporter();
 
   if (!transporter) {
-    console.warn(`[EMAIL_NOT_CONFIGURED] Skipping email to: ${mailOptions.to}`);
+    console.warn(`[EMAIL_NOT_CONFIGURED] Skipping email dispatch to: ${mailOptions.to}`);
     return {
       status: 'EMAIL_NOT_CONFIGURED',
+      type: 'NONE',
       message: 'SMTP credentials not configured in environment.'
     };
   }
@@ -59,18 +64,22 @@ const safeSendMail = async (mailOptions) => {
   try {
     const info = await transporter.sendMail(mailOptions);
     const previewUrl = type === 'ETHEREAL' ? nodemailer.getTestMessageUrl(info) : undefined;
-    console.log(`[EMAIL_SENT] MessageId: ${info.messageId} (Transporter: ${type})`);
+    console.log(`[EMAIL_SENT] MessageId: ${info.messageId} (Transporter: ${type}${type === 'ETHEREAL' ? ` - Preview: ${previewUrl}` : ''})`);
 
     return {
       status: 'EMAIL_SENT',
       messageId: info.messageId,
       previewUrl,
-      type
+      type,
+      service,
+      message: type === 'SMTP' ? `Delivered via ${service.toUpperCase()} SMTP` : `Sent to test inbox (Ethereal)`
     };
   } catch (error) {
     console.error(`[EMAIL_FAILED] Destination: ${mailOptions.to} — Error: ${error.message}`);
     return {
       status: 'EMAIL_FAILED',
+      type,
+      service,
       message: error.message
     };
   }
@@ -91,13 +100,13 @@ const sendBookingConfirmation = async (patientEmail, doctorEmail, appointmentDat
     subject: `Appointment Confirmed: ${appointmentData.date} at ${appointmentData.timeSlot}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #1e293b;">
-        <h2 style="color: #4f46e5;">HealthPulse AI Appointment Confirmation</h2>
+        <h2 style="color: #0f766e;">HealthPulse AI Appointment Confirmation</h2>
         <p>Your healthcare appointment has been booked successfully.</p>
         <div style="background: #f8fafc; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0;">
           <p><strong>Date:</strong> ${appointmentData.date}</p>
           <p><strong>Time Slot:</strong> ${appointmentData.timeSlot}</p>
           <p><strong>Symptoms:</strong> ${appointmentData.symptoms || 'None specified'}</p>
-          <p><strong>AI Urgency:</strong> <span style="font-weight: bold; color: ${appointmentData.urgencyLevel === 'High' ? '#dc2626' : '#2563eb'}">${appointmentData.urgencyLevel || 'Medium'}</span></p>
+          <p><strong>AI Urgency:</strong> <span style="font-weight: bold; color: ${appointmentData.urgencyLevel === 'High' ? '#dc2626' : '#0f766e'}">${appointmentData.urgencyLevel || 'Medium'}</span></p>
         </div>
         <p style="font-size: 0.85rem; color: #64748b; margin-top: 20px;">HealthPulse AI Clinic Management System</p>
       </div>
@@ -122,7 +131,7 @@ const sendCancellationEmail = async (patientEmail, doctorEmail, appointmentData,
     subject: `Appointment Cancelled: ${appointmentData.date} at ${appointmentData.timeSlot}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #1e293b;">
-        <h2 style="color: #ef4444;">HealthPulse Appointment Cancelled</h2>
+        <h2 style="color: #dc2626;">HealthPulse Appointment Cancelled</h2>
         <p>The following scheduled appointment has been cancelled:</p>
         <div style="background: #fef2f2; padding: 16px; border-radius: 8px; border: 1px solid #fecaca;">
           <p><strong>Date:</strong> ${appointmentData.date}</p>

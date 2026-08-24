@@ -4,7 +4,7 @@ const User = require('../models/User');
 const NodeCache = require('node-cache');
 const { sendDoctorLeaveCancellation } = require('../services/emailService');
 const { deleteCalendarEvent } = require('../services/calendarService');
-const cache = new NodeCache({ stdTTL: 600 }); // cache for 10 minutes
+const cache = new NodeCache({ stdTTL: 600, useClones: false }); // cache for 10 minutes (disable deep cloning of Mongoose documents)
 
 // @desc    Get all doctors, optionally filter by specialization
 // @route   GET /api/doctors?specialization=Cardiology
@@ -24,7 +24,7 @@ const getDoctors = async (req, res) => {
       ? { specialization: { $regex: specialization, $options: 'i' } }
       : {};
 
-    const doctors = await DoctorProfile.find(filter).populate('user', 'name email');
+    const doctors = await DoctorProfile.find(filter).populate('user', 'name email').lean();
     cache.set(cacheKey, doctors);
 
     res.status(200).json(doctors);

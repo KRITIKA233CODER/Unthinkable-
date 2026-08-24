@@ -93,6 +93,10 @@ export default function App() {
   });
   const [adminActionLoading, setAdminActionLoading] = useState(false);
 
+  // System Configuration Status
+  const [configStatus, setConfigStatus] = useState(null);
+  const [showConfigModal, setShowConfigModal] = useState(false);
+
   // -------------------------------------------------------------
   // Toast & Format Helpers
   // -------------------------------------------------------------
@@ -105,6 +109,31 @@ export default function App() {
       setTimeout(() => setGlobalSuccess(''), 5000);
     }
   };
+
+  const fetchConfigStatus = async () => {
+    try {
+      const data = await api.getConfigStatus();
+      setConfigStatus(data);
+    } catch {
+      // ignore
+    }
+  };
+
+  useEffect(() => {
+    fetchConfigStatus();
+
+    // Check for Google OAuth callback redirect parameters
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('calendar_auth') === 'success') {
+      showToast('Google Calendar connected successfully! Events will now sync automatically.');
+      fetchConfigStatus();
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (params.get('calendar_auth') === 'failed') {
+      const err = params.get('error') || 'OAuth authorization failed';
+      showToast(`Google Calendar connection failed: ${decodeURIComponent(err)}`, true);
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
 
   const formatTimer = (totalSecs) => {
     if (totalSecs <= 0) return '00:00';
@@ -918,6 +947,20 @@ export default function App() {
           </div>
 
           <div className="nav-user-profile">
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm"
+              style={{ fontSize: '0.76rem', display: 'flex', alignItems: 'center', gap: '4px' }}
+              onClick={() => {
+                fetchConfigStatus();
+                setShowConfigModal(true);
+              }}
+              title="View live backend integrations status"
+            >
+              ⚙️ Integrations
+              {configStatus?.gemini === 'CONFIGURED' && <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981' }} />}
+            </button>
+
             <div style={{ textAlign: 'right' }}>
               <div style={{ fontSize: '0.84rem', fontWeight: 600, color: 'var(--text-main)' }}>
                 {currentUser.name}
@@ -942,6 +985,84 @@ export default function App() {
           </div>
         </div>
       </header>
+
+      {/* System Integrations Status Modal */}
+      {showConfigModal && configStatus && (
+        <div className="modal-overlay">
+          <div className="modal-dialog" style={{ maxWidth: '480px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid var(--border-light)', paddingBottom: '10px' }}>
+              <div>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 700 }}>System Integrations Status</h3>
+                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Live backend credential & service audit</p>
+              </div>
+              <button type="button" className="btn btn-secondary btn-sm" onClick={() => setShowConfigModal(false)}>✕</button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-light)' }}>
+                <div>
+                  <strong style={{ fontSize: '0.85rem' }}>🤖 Google Gemini AI</strong>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>GEMINI_API_KEY</div>
+                </div>
+                <span className={`status-pill ${configStatus.gemini === 'CONFIGURED' ? 'status-completed' : 'status-scheduled'}`}>
+                  {configStatus.gemini === 'CONFIGURED' ? '✓ Configured (Live)' : 'Deterministic Fallback'}
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-light)' }}>
+                <div>
+                  <strong style={{ fontSize: '0.85rem' }}>📧 Nodemailer (Email)</strong>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>EMAIL_USER / EMAIL_PASS</div>
+                </div>
+                <span className={`status-pill ${configStatus.email.includes('CONFIGURED') ? 'status-completed' : 'status-scheduled'}`}>
+                  {configStatus.email}
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-light)', flexWrap: 'wrap', gap: '10px' }}>
+                <div>
+                  <strong style={{ fontSize: '0.85rem' }}>📅 Google Calendar</strong>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>OAuth 2.0 Real-time Events Sync</div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                  {configStatus.googleCalendar === 'CONFIGURED' ? (
+                    <span className="status-pill status-completed">
+                      ✓ Configured (Live)
+                    </span>
+                  ) : (
+                    <span className="status-pill status-scheduled">
+                      {configStatus.googleOAuth?.status === 'READY_TO_CONNECT' ? 'Ready to Connect' : 'Setup Required'}
+                    </span>
+                  )}
+                  <a
+                    href="http://localhost:5000/api/auth/google?redirect=true"
+                    className="btn btn-primary btn-sm"
+                    style={{ textDecoration: 'none', padding: '5px 12px', fontSize: '0.76rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                    title="Connect or Re-authenticate Google Calendar"
+                  >
+                    🔗 {configStatus.googleCalendar === 'CONFIGURED' ? 'Reconnect Calendar' : 'Connect Calendar'}
+                  </a>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-light)' }}>
+                <div>
+                  <strong style={{ fontSize: '0.85rem' }}>🗄️ MongoDB Database</strong>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>MONGO_URI</div>
+                </div>
+                <span className={`status-pill ${configStatus.database === 'CONNECTED' ? 'status-completed' : 'status-cancelled'}`}>
+                  {configStatus.database === 'CONNECTED' ? '✓ Connected' : 'Disconnected'}
+                </span>
+              </div>
+            </div>
+
+            <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+              <button type="button" className="btn btn-secondary btn-sm" onClick={fetchConfigStatus}>🔄 Refresh Status</button>
+              <button type="button" className="btn btn-primary btn-sm" onClick={() => setShowConfigModal(false)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Workspace Area */}
       <main className="main-content">
@@ -1230,22 +1351,24 @@ export default function App() {
                       <h3 className="card-title">AI-Assisted Clinical Assessment</h3>
                       <p className="card-subtitle">Automated triage for attending doctor review.</p>
                     </div>
-                    <span className="ai-clinical-badge">Clinical AI</span>
+                    <span className={bookingResult?.preVisitSummary?.isFallback ? 'status-pill status-scheduled' : 'ai-clinical-badge'}>
+                      {bookingResult?.preVisitSummary?.isFallback ? 'Deterministic Fallback' : 'Google Gemini 1.5 Flash'}
+                    </span>
                   </div>
 
                   {bookingResult ? (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                       {/* Success Box */}
                       <div style={{ padding: '10px 14px', background: 'var(--accent-subtle)', border: '1px solid var(--accent-border)', borderRadius: 'var(--radius-sm)', color: 'var(--urgency-low-text)', fontSize: '0.84rem' }}>
-                        Appointment successfully recorded in database (ID: {bookingResult._id?.slice(-6)})
+                        ✓ Appointment successfully recorded in database (ID: {bookingResult._id?.slice(-6)})
                       </div>
 
                       {/* Calendar Status */}
                       {bookingResult.calendarStatus && (
                         <div style={{ padding: '8px 12px', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', background: bookingResult.calendarStatus.success ? 'var(--accent-subtle)' : 'var(--bg-subtle)', border: `1px solid ${bookingResult.calendarStatus.success ? 'var(--accent-border)' : 'var(--border-light)'}`, color: bookingResult.calendarStatus.success ? 'var(--urgency-low-text)' : 'var(--text-muted)' }}>
                           {bookingResult.calendarStatus.success
-                            ? `Google Calendar event synced (ID: ${bookingResult.calendarStatus.eventId})`
-                            : bookingResult.calendarStatus.message}
+                            ? `✓ Google Calendar Event Synced (ID: ${bookingResult.calendarStatus.eventId})`
+                            : `⚠ ${bookingResult.calendarStatus.message}`}
                         </div>
                       )}
 
@@ -1253,8 +1376,8 @@ export default function App() {
                       {bookingResult.emailStatus && (
                         <div style={{ padding: '8px 12px', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', background: bookingResult.emailStatus.status === 'EMAIL_SENT' ? 'var(--accent-subtle)' : 'var(--bg-subtle)', border: `1px solid ${bookingResult.emailStatus.status === 'EMAIL_SENT' ? 'var(--accent-border)' : 'var(--border-light)'}`, color: bookingResult.emailStatus.status === 'EMAIL_SENT' ? 'var(--urgency-low-text)' : 'var(--text-muted)' }}>
                           {bookingResult.emailStatus.status === 'EMAIL_SENT'
-                            ? 'Booking confirmation email dispatched'
-                            : `Email delivery: ${bookingResult.emailStatus.message}`}
+                            ? `✓ ${bookingResult.emailStatus.message || 'Confirmation email dispatched'}`
+                            : `⚠ Email notice: ${bookingResult.emailStatus.message}`}
                         </div>
                       )}
 

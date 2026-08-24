@@ -25,7 +25,8 @@ router.put('/:id/reschedule', protect, authorize('patient'), rescheduleAppointme
 // Doctor submits post-visit notes
 router.post('/:id/post-visit', protect, authorize('doctor'), submitPostVisit);
 
-// Get current user's appointments
+// Get user's appointments (or all appointments for admin)
 router.get('/my', protect, getMyAppointments);
+router.get('/', protect, getMyAppointments);
 
 module.exports = router;

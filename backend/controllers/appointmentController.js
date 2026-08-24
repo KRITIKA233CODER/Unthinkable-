@@ -8,7 +8,7 @@ const {
   sendCancellationEmail,
   sendRescheduleEmail
 } = require('../services/emailService');
-const { createCalendarEvent, updateCalendarEvent, deleteCalendarEvent } = require('../services/calendarService');
+const { createCalendarEvent, updateCalendarEvent, deleteCalendarEvent, getLastCalendarError } = require('../services/calendarService');
 
 // @desc    Hold an appointment slot for 5 minutes
 // @route   POST /api/appointments/hold
@@ -21,15 +21,10 @@ const holdSlot = async (req, res) => {
     return res.status(400).json({ message: 'doctorId, date, and timeSlot are required' });
   }
 
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
   try {
     // 1. Verify doctor exists
-    const doctor = await DoctorProfile.findById(doctorId).session(session);
+    const doctor = await DoctorProfile.findById(doctorId);
     if (!doctor) {
-      await session.abortTransaction();
-      session.endSession();
       return res.status(404).json({ message: 'Doctor not found' });
     }
 
@@ -41,8 +36,6 @@ const holdSlot = async (req, res) => {
     });
 
     if (isLeave) {
-      await session.abortTransaction();
-      session.endSession();
       return res.status(400).json({ message: 'Doctor is on leave on this date' });
     }
 
@@ -56,12 +49,10 @@ const holdSlot = async (req, res) => {
       doctor: doctorId,
       date: { $gte: startOfDay, $lte: endOfDay },
       timeSlot
-    }).session(session);
+    });
 
     if (existingAppt) {
       if (existingAppt.status === 'Scheduled' || existingAppt.status === 'Completed') {
-        await session.abortTransaction();
-        session.endSession();
         return res.status(409).json({ message: 'This time slot is already booked.' });
       }
 
@@ -70,8 +61,6 @@ const holdSlot = async (req, res) => {
         if (existingAppt.holdExpiresAt && existingAppt.holdExpiresAt > now) {
           // If held by someone else
           if (existingAppt.patient.toString() !== patientId) {
-            await session.abortTransaction();
-            session.endSession();
             return res.status(409).json({
               message: 'This slot is temporarily held by another patient. Please try again in a few minutes.'
             });
@@ -79,9 +68,7 @@ const holdSlot = async (req, res) => {
 
           // Held by same patient -> extend and return existing hold
           existingAppt.holdExpiresAt = new Date(Date.now() + 5 * 60 * 1000);
-          await existingAppt.save({ session });
-          await session.commitTransaction();
-          session.endSession();
+          await existingAppt.save();
 
           return res.status(200).json({
             message: 'Slot hold extended',
@@ -94,14 +81,14 @@ const holdSlot = async (req, res) => {
           });
         }
 
-        // Expired hold -> remove it inside transaction to free the index
-        await Appointment.deleteOne({ _id: existingAppt._id }).session(session);
+        // Expired hold -> remove it to free the index
+        await Appointment.deleteOne({ _id: existingAppt._id });
       }
     }
 
     // 4. Create new temporary hold (5 minutes expiration)
     const holdExpiry = new Date(Date.now() + 5 * 60 * 1000);
-    const newHold = await Appointment.create([{
+    const newHold = await Appointment.create({
       patient: patientId,
       doctor: doctorId,
       date: new Date(date),
@@ -109,14 +96,11 @@ const holdSlot = async (req, res) => {
       status: 'Held',
       holdExpiresAt: holdExpiry,
       symptoms: 'Pending confirmation'
-    }], { session });
-
-    await session.commitTransaction();
-    session.endSession();
+    });
 
     res.status(201).json({
       message: 'Slot held successfully for 5 minutes',
-      holdId: newHold[0]._id,
+      holdId: newHold._id,
       holdExpiresAt: holdExpiry,
       expiresInSeconds: 300,
       doctorId,
@@ -124,9 +108,6 @@ const holdSlot = async (req, res) => {
       timeSlot
     });
   } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
-
     if (error.code === 11000) {
       return res.status(409).json({ message: 'This slot is currently held or booked by another user.' });
     }
@@ -142,41 +123,30 @@ const bookAppointment = async (req, res) => {
   const { holdId, doctorId, date, timeSlot, symptoms } = req.body;
   const patientId = req.user.id;
 
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
   try {
     let appointment;
     let doctor;
 
     // A) If booking with a valid hold ID
     if (holdId) {
-      appointment = await Appointment.findById(holdId).session(session);
+      appointment = await Appointment.findById(holdId);
       if (!appointment) {
-        await session.abortTransaction();
-        session.endSession();
         return res.status(404).json({ message: 'Hold reservation not found.' });
       }
 
       if (appointment.patient.toString() !== patientId) {
-        await session.abortTransaction();
-        session.endSession();
         return res.status(403).json({ message: 'You do not own this slot reservation.' });
       }
 
       if (appointment.status !== 'Held') {
-        await session.abortTransaction();
-        session.endSession();
         return res.status(400).json({ message: 'This appointment is already confirmed or processed.' });
       }
 
       if (appointment.holdExpiresAt && appointment.holdExpiresAt <= new Date()) {
-        await session.abortTransaction();
-        session.endSession();
         return res.status(409).json({ message: 'Slot hold has expired. Please reselect an available slot.' });
       }
 
-      doctor = await DoctorProfile.findById(appointment.doctor).populate('user', 'name email').session(session);
+      doctor = await DoctorProfile.findById(appointment.doctor).populate('user', 'name email');
 
       // Generate AI Pre-Visit Summary (graceful fallback)
       const aiPreVisit = await generatePreVisitSummary(symptoms || appointment.symptoms);
@@ -187,18 +157,15 @@ const bookAppointment = async (req, res) => {
       appointment.preVisitSummary = {
         urgencyLevel: aiPreVisit.urgencyLevel || 'Medium',
         chiefComplaint: aiPreVisit.chiefComplaint || symptoms,
-        suggestedQuestions: aiPreVisit.suggestedQuestions || []
+        suggestedQuestions: aiPreVisit.suggestedQuestions || [],
+        isFallback: aiPreVisit.isFallback
       };
 
-      await appointment.save({ session });
-      await session.commitTransaction();
-      session.endSession();
+      await appointment.save();
     } else {
       // B) Direct booking without pre-existing hold
-      doctor = await DoctorProfile.findById(doctorId).populate('user', 'name email').session(session);
+      doctor = await DoctorProfile.findById(doctorId).populate('user', 'name email');
       if (!doctor) {
-        await session.abortTransaction();
-        session.endSession();
         return res.status(404).json({ message: 'Doctor not found' });
       }
 
@@ -209,14 +176,12 @@ const bookAppointment = async (req, res) => {
       });
 
       if (isLeave) {
-        await session.abortTransaction();
-        session.endSession();
         return res.status(400).json({ message: 'Doctor is on leave on this date' });
       }
 
       const aiPreVisit = await generatePreVisitSummary(symptoms);
 
-      const created = await Appointment.create([{
+      const created = await Appointment.create({
         patient: patientId,
         doctor: doctorId,
         date: new Date(date),
@@ -226,13 +191,12 @@ const bookAppointment = async (req, res) => {
         preVisitSummary: {
           urgencyLevel: aiPreVisit.urgencyLevel || 'Medium',
           chiefComplaint: aiPreVisit.chiefComplaint || symptoms,
-          suggestedQuestions: aiPreVisit.suggestedQuestions || []
+          suggestedQuestions: aiPreVisit.suggestedQuestions || [],
+          isFallback: aiPreVisit.isFallback
         }
-      }], { session });
+      });
 
-      appointment = created[0];
-      await session.commitTransaction();
-      session.endSession();
+      appointment = created;
     }
 
     // 1. Send confirmation email (Nodemailer status tracked)
@@ -254,7 +218,11 @@ const bookAppointment = async (req, res) => {
         const mailRes = await sendBookingConfirmation(req.user.email, doctor?.user?.email, appointmentData);
         emailResult = {
           status: mailRes?.status || 'EMAIL_SENT',
-          message: mailRes?.status === 'EMAIL_SENT' ? 'Booking confirmation email sent' : (mailRes?.message || 'Email sending failed'),
+          type: mailRes?.type || 'SMTP',
+          previewUrl: mailRes?.previewUrl,
+          message: mailRes?.status === 'EMAIL_SENT' 
+            ? (mailRes?.type === 'SMTP' ? 'Confirmation email dispatched via SMTP' : 'Confirmation email sent to test inbox (Ethereal)')
+            : (mailRes?.message || 'Email sending failed'),
           messageId: mailRes?.messageId
         };
       } catch (mailErr) {
@@ -269,7 +237,7 @@ const bookAppointment = async (req, res) => {
     // 2. Google Calendar Synchronization
     let calendarResult = {
       success: false,
-      message: 'Google Calendar synchronization skipped (OAuth credentials not configured)'
+      message: 'Google Calendar synchronization skipped'
     };
 
     try {
@@ -282,9 +250,15 @@ const bookAppointment = async (req, res) => {
           eventId,
           message: 'Google Calendar event created successfully'
         };
+      } else {
+        const lastErr = getLastCalendarError();
+        calendarResult = {
+          success: false,
+          message: lastErr ? `Google Calendar synchronization skipped (${lastErr})` : 'Google Calendar synchronization skipped'
+        };
       }
     } catch (calErr) {
-      console.error('Google Calendar creation failed (non-blocking):', calErr.message);
+      console.error('[CALENDAR_FAILED] Booking calendar sync:', calErr.message);
       calendarResult = {
         success: false,
         message: `Calendar sync failed: ${calErr.message}`
@@ -297,9 +271,6 @@ const bookAppointment = async (req, res) => {
       calendar: calendarResult
     });
   } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
-
     if (error.code === 11000) {
       return res.status(409).json({ message: 'This time slot is already booked.' });
     }
@@ -532,7 +503,8 @@ const submitPostVisit = async (req, res) => {
       clinicalNotes,
       patientSummary: aiPostVisit.patientSummary || clinicalNotes,
       medicationSchedule: aiPostVisit.medicationSchedule || 'Follow doctor instructions.',
-      followUpSteps: aiPostVisit.followUpSteps || 'Follow up as needed.'
+      followUpSteps: aiPostVisit.followUpSteps || 'Follow up as needed.',
+      isFallback: aiPostVisit.isFallback
     };
 
     await appointment.save();

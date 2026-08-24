@@ -168,5 +168,10 @@ export const api = {
     request(`/appointments/${id}/post-visit`, {
       method: 'POST',
       body: JSON.stringify({ clinicalNotes })
-    })
+    }),
+
+  getConfigStatus: () => request('/config-status'),
+
+  getGoogleAuthUrl: () => request('/auth/google'),
+  getGoogleCalendarStatus: () => request('/auth/google/status')
 };
