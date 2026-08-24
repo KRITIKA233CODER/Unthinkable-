@@ -9,7 +9,7 @@ HealthPulse AI is an appointment scheduling and clinical follow-up management pl
 [![Express](https://img.shields.io/badge/Express-5.x-000000?logo=express)](https://expressjs.com/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose_9-47A248?logo=mongodb)](https://www.mongodb.com/)
 [![Google Gemini](https://img.shields.io/badge/Google_Gemini-1.5_Flash-4285F4?logo=google)](https://ai.google.dev/)
-[![Tests](https://img.shields.io/badge/Tests-26_Passing-brightgreen)]()
+[![Tests](https://img.shields.io/badge/Tests-23_Passing-brightgreen)]()
 
 ---
 
@@ -27,114 +27,36 @@ HealthPulse AI addresses the complete clinical lifecycle: pre-visit intake triag
 
 ## 2. End-to-End Workflow
 
-![HealthPulse AI End-to-End Clinical Lifecycle](./docs/diagrams/workflow_diagram.svg)
-
-<details>
-<summary><b>🔍 View Mermaid Flowchart Definition</b></summary>
-
 ```mermaid
-flowchart LR
-    subgraph S1["1. Patient Intake & Slot Engine"]
-        A["1A. Select Specialist"] --> B["1B. Dynamic Slot Math Engine"]
-        B --> C["1C. 5-Min Atomic TTL Lock"]
-        C --> D["1D. Symptoms Intake / 🎙️ Voice"]
-        D --> E["1E. Confirm & Book Slot"]
+flowchart TD
+    subgraph Patient Journey
+        A[Select Specialization & Doctor] --> B[Pick Date & Available Slot]
+        B --> C[Atomic 5-Min Slot Hold Lock]
+        C --> D[Describe Symptoms / Voice Input]
+        D --> E[Confirm Booking]
+        E --> F[Gemini Pre-Visit Triage Extraction]
+        F --> G[Scheduled Appointment Stored]
     end
 
-    subgraph S2["2. Gemini 1.5 Flash AI Triage"]
-        E --> F["2A. Urgency Rating (High/Med/Low)"]
-        F --> G["2B. Structured Chief Complaint"]
-        G --> H["2C. 3 Suggested Clinical Questions"]
+    subgraph Doctor Journey
+        G --> H[Doctor Reviews Queue & Urgency Score]
+        H --> I[Conduct Consultation & Record Notes]
+        I --> J[Submit Clinical Diagnosis & Rx]
+        J --> K[Gemini Post-Visit Translation]
     end
 
-    subgraph S3["3. Doctor Clinical Workspace"]
-        H --> I["3A. Triage-Ranked Patient Queue"]
-        I --> J["3B. Clinical Visit & Note Taking"]
-        J --> K["3C. Gemini Post-Visit Care Plan"]
+    subgraph Follow-Up & Notifications
+        K --> L[Structured Care Plan & Rx Stored]
+        L --> M[Patient Views Care Plan in Portal]
+        L --> N[Background Reminder Queue]
+        N --> O[Nodemailer Medication Reminders]
+        E --> P[Google Calendar & Confirmation Email]
     end
-
-    subgraph S4["4. Follow-up & Notifications"]
-        K --> L["4A. Layman Care Plan Stored"]
-        L --> M["4B. Patient Portal View"]
-        L --> N["4C. Persistent Retry Reminder Queue"]
-        N --> O["4D. Nodemailer Email Reminders"]
-        E --> P["4E. Google Calendar OAuth Sync"]
-    end
-
-    classDef stage1 fill:#0f172a,stroke:#06b6d4,stroke-width:2px,color:#38bdf8;
-    classDef stage2 fill:#0f172a,stroke:#a855f7,stroke-width:2px,color:#c084fc;
-    classDef stage3 fill:#0f172a,stroke:#10b981,stroke-width:2px,color:#34d399;
-    classDef stage4 fill:#0f172a,stroke:#f59e0b,stroke-width:2px,color:#fbbf24;
-
-    class A,B,C,D,E stage1;
-    class F,G,H stage2;
-    class I,J,K stage3;
-    class L,M,N,O,P stage4;
 ```
 
-</details>
-
 ---
 
-## 3. Visual Tour & Application Screenshots
-
-### 🔐 Authentication & Role-Based Access Control
-HealthPulse AI features a clean, unified authentication gateway supporting Patients, Doctors, and Clinic Administrators with instant prefilled evaluator access.
-
-| Sign In with Instant Evaluator Demo Accounts | Account Registration & Role Selection |
-| :---: | :---: |
-| ![Sign In Screen](./docs/screenshots/02_auth_login.png) | ![Register Screen](./docs/screenshots/03_auth_register.png) |
-
----
-
-### 🏥 Clinic Administration & Doctor Management (Admin Portal)
-Administrators configure specialist rosters, modify working hours, set slot durations, and manage leave calendars with real-time KPI metrics.
-
-| Clinic Operations & Specialist Availability Dashboard | Add Specialist Doctor Profile Modal |
-| :---: | :---: |
-| ![Admin Dashboard](./docs/screenshots/04_admin_dashboard.png) | ![Add Doctor Modal](./docs/screenshots/05_admin_add_doctor_modal.png) |
-
----
-
-### 🩺 Dynamic Booking, Atomic Slot Hold & AI Triage (Patient Portal)
-Patients select specialist slots with an **atomic 5-minute database reservation hold countdown**, use **🎙️ Voice Input** to state symptoms, and receive instantaneous **Google Gemini 1.5 Flash AI Triage** assessing urgency and generating clinical questions.
-
-| Dynamic Slots & 5-Min Atomic Reservation Hold | Real-Time Gemini AI Triage Extraction & Booking Confirmation |
-| :---: | :---: |
-| ![Patient Slot Hold & Voice Input](./docs/screenshots/06_patient_booking_slot_hold.png) | ![AI Triage Confirmation](./docs/screenshots/07_patient_ai_triage_confirmed.png) |
-
----
-
-### 📋 Patient Appointment History & Care Plans
-A centralized patient dashboard tracking upcoming consultations, AI triage urgency badges, rescheduling/cancellation controls, and structured post-visit care plans.
-
-![Patient Appointments & Care Plan Dashboard](./docs/screenshots/08_patient_appointments_dashboard.png)
-
----
-
-### 👨‍⚕️ Doctor Clinical Workspace, AI Intake & Consultation
-Doctors review assigned patient queues annotated with AI pre-visit summaries and suggested questions, conduct consultations with automated care plan generation, and register staff leave dates.
-
-| Assigned Patient Queue with AI Urgency & Questions | Clinical Consultation & Gemini Care Plan Translation |
-| :---: | :---: |
-| ![Doctor Patient Queue](./docs/screenshots/09_doctor_patient_queue.png) | ![Doctor Consultation Modal](./docs/screenshots/10_doctor_consultation_notes.png) |
-
-| Schedule Doctor Leave Day & Cascade Cancellation |
-| :---: |
-| ![Doctor Leave Schedule Modal](./docs/screenshots/11_doctor_leave_management.png) |
-
----
-
-### 📅 Live Integrations: Google Calendar & Email Dispatch
-Automated calendar event synchronization and reliable SMTP / Gmail appointment confirmation dispatches.
-
-| Google Calendar Live Event Insertion | Nodemailer / Gmail Appointment Confirmation Email |
-| :---: | :---: |
-| ![Google Calendar Sync](./docs/screenshots/01_google_calendar_sync.png) | ![Email Confirmation](./docs/screenshots/12_email_appointment_confirmation.png) |
-
----
-
-## 4. Key Features & Implementation Status
+## 3. Key Features & Implementation Status
 
 | Feature | Description | Implementation Status | Technical Location |
 | :--- | :--- | :---: | :--- |
@@ -152,7 +74,7 @@ Automated calendar event synchronization and reliable SMTP / Gmail appointment c
 
 ---
 
-## 5. Engineering Highlights
+## 4. Engineering Highlights
 
 ### 🔒 A. Double-Booking Prevention Mechanism
 Relying on frontend checks or a read-before-write query is insufficient under concurrent load because two requests can read a slot as "available" simultaneously.
@@ -189,7 +111,7 @@ When a doctor registers a leave day via `POST /api/doctors/leave`:
 
 ---
 
-## 6. AI Architecture & LLM Integration
+## 5. AI Architecture & LLM Integration
 
 The application utilizes Google Gemini (`gemini-1.5-flash`) for structured clinical intelligence.
 
@@ -222,7 +144,7 @@ If `GEMINI_API_KEY` is missing or the external API experiences a network timeout
 
 ---
 
-## 7. Email Architecture & Failure Isolation
+## 6. Email Architecture & Failure Isolation
 
 Emails are handled by Nodemailer in [`backend/services/emailService.js`](./backend/services/emailService.js):
 
@@ -233,7 +155,7 @@ Emails are handled by Nodemailer in [`backend/services/emailService.js`](./backe
 
 ---
 
-## 8. Google Calendar OAuth 2.0 Integration
+## 7. Google Calendar OAuth 2.0 Integration
 
 Calendar synchronization is implemented in [`backend/services/calendarService.js`](./backend/services/calendarService.js) using `googleapis`:
 
@@ -244,7 +166,7 @@ Calendar synchronization is implemented in [`backend/services/calendarService.js
 
 ---
 
-## 9. System Architecture
+## 8. System Architecture
 
 ```mermaid
 graph TD
@@ -269,7 +191,7 @@ graph TD
 
 ---
 
-## 10. Database Schema
+## 9. Database Schema
 
 ### 1. `User` Model
 * `name` (String, Required)
@@ -312,7 +234,7 @@ graph TD
 
 ---
 
-## 11. API Endpoints
+## 10. API Endpoints
 
 | Method | Endpoint | Auth | Role | Purpose |
 | :--- | :--- | :---: | :---: | :--- |
@@ -334,7 +256,7 @@ graph TD
 
 ---
 
-## 12. Failure Handling Matrix
+## 11. Failure Handling Matrix
 
 | Component | Failure Mode | System Behavior |
 | :--- | :--- | :--- |
@@ -347,7 +269,7 @@ graph TD
 
 ---
 
-## 13. Local Installation & Setup
+## 12. Local Installation & Setup
 
 ### Prerequisites
 * **Node.js**: v18+ installed
@@ -390,9 +312,9 @@ npm run dev
 
 ---
 
-## 14. Automated Unit Testing
+## 13. Automated Unit Testing
 
-HealthPulse AI includes 26 unit tests covering concurrency, AI fallback, calendar persistence, reminder queues, and email flows:
+HealthPulse AI includes 23 unit tests covering concurrency, AI fallback, calendar persistence, reminder queues, and email flows:
 
 ```bash
 cd backend
@@ -408,12 +330,12 @@ PASS tests/calendar.test.js    (OAuth lifecycle, event persistence, patch/delete
 PASS tests/email.test.js       (Nodemailer delivery status contracts & 5 notification flows)
 
 Test Suites: 5 passed, 5 total
-Tests:       26 passed, 26 total
+Tests:       23 passed, 23 total
 ```
 
 ---
 
-## 15. Recommended Evaluator Demonstration Flow
+## 14. Recommended Evaluator Demonstration Flow
 
 To verify the complete clinical loop in under 5 minutes:
 
@@ -436,7 +358,7 @@ To verify the complete clinical loop in under 5 minutes:
 
 ---
 
-## 16. Google Calendar & Email Configuration (Optional)
+## 15. Google Calendar & Email Configuration (Optional)
 
 ### Google Calendar OAuth 2.0 Setup
 1. Create a project in [Google Cloud Console](https://console.cloud.google.com/).
@@ -451,7 +373,7 @@ To verify the complete clinical loop in under 5 minutes:
 
 ---
 
-## 17. Technical Trade-Offs & Honest Limitations
+## 16. Technical Trade-Offs & Honest Limitations
 
 * **OAuth Token Scope:** Google Calendar requires user-delegated OAuth 2.0 refresh tokens. If credentials are not supplied, the application gracefully skips calendar synchronization without interrupting booking.
 * **Background Worker Architecture:** To avoid requiring Redis/BullMQ infrastructure for evaluation, the background reminder queue is implemented as a MongoDB-backed persistent job queue driven by `node-cron`.
@@ -459,7 +381,7 @@ To verify the complete clinical loop in under 5 minutes:
 
 ---
 
-## 18. Project Structure
+## 17. Project Structure
 
 ```
 unthinkable/
@@ -495,9 +417,6 @@ unthinkable/
 │   ├── package.json
 │   ├── seed.js                      # Initial clinic database seeder
 │   └── server.js                    # Express app entrypoint
-├── docs/
-│   ├── diagrams/                    # System architecture & clinical workflow SVG/PNG assets
-│   └── screenshots/                 # Application visual walkthrough assets
 ├── frontend/
 │   ├── src/
 │   │   ├── api.js                   # Axios/Fetch API client wrapper
