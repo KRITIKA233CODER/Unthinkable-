@@ -142,10 +142,45 @@ HealthPulse AI solves this at the database engine layer:
 2. **ACID Transaction Write Locks:** `bookAppointment` and `holdSlot` execute inside a MongoDB transaction session (`mongoose.startSession()`). If two concurrent HTTP requests target the same doctor slot at the same millisecond, MongoDB write locking allows exactly one write and rejects the second with error `E11000`.
 3. **HTTP 409 Conflict Response:** The controller catches duplicate key collisions and returns an explicit `409 Conflict` status code.
 
-```
-Patient Request A ──┐
-                    ├── MongoDB Unique Index { doctor, date, timeSlot } ──→ [200 OK] Created
-Patient Request B ──┘                                                    └──→ [409 Conflict] Duplicate
+```mermaid
+sequenceDiagram
+    autonumber
+    actor PatientA as 👤 Patient A
+    actor PatientB as 👤 Patient B
+    participant API as ⚡ Express API Gateway
+    participant Session as 🔄 MongoDB Session Transaction
+    participant Engine as 🗄️ MongoDB WiredTiger Engine
+    participant Index as 🔒 Unique Index { doctor, date, timeSlot }
+
+    Note over PatientA,PatientB: Concurrent booking requests for Dr. Sarah Jenkins at 09:00 AM
+    
+    par Concurrent Requests (at t0)
+        PatientA->>API: POST /api/appointments/book (09:00 AM)
+    and
+        PatientB->>API: POST /api/appointments/book (09:00 AM)
+    end
+
+    API->>Session: mongoose.startSession() & startTransaction()
+    
+    rect rgb(240, 253, 244)
+    Note over PatientA,Index: Request A acquires database write lock first (t0 + 2ms)
+    Session->>Engine: Write Appointment (status: 'Scheduled')
+    Engine->>Index: Evaluate Compound Unique Constraint
+    Index-->>Engine: Key Available -> Insert Document
+    Engine-->>Session: Commit Transaction
+    Session-->>API: 200 OK Response Payload
+    API-->>PatientA: 🟢 HTTP 200 OK (Booking Confirmed + AI Triage)
+    end
+
+    rect rgb(254, 242, 242)
+    Note over PatientB,Index: Request B attempts write on identical slot (t0 + 3ms)
+    Session->>Engine: Attempt Write for Duplicate Slot
+    Engine->>Index: Evaluate Compound Unique Constraint
+    Index--xEngine: Collision Detected (E11000 Duplicate Key Error)
+    Engine-->>Session: Abort Transaction & Rollback
+    Session-->>API: Catch MongoServerError (code: 11000)
+    API-->>PatientB: 🔴 HTTP 409 Conflict ("This slot is already booked")
+    end
 ```
 
 ---
