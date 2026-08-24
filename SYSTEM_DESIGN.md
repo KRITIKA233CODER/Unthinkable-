@@ -18,6 +18,8 @@ This acts as an immutable database constraint, ensuring physical impossibility o
 ### B. Controller-Level ACID Transactions
 When a booking or hold request arrives, the Express controller initiates a MongoDB Session transaction (`mongoose.startSession()`). If two concurrent HTTP requests attempt to lock the same doctor slot at the exact same millisecond, MongoDB's write-lock rejects the second transaction with error code `11000`. The controller catches this error gracefully and responds to the client with an HTTP `409 Conflict` ("This slot is already booked or held").
 
+![Double-Booking Concurrency Sequence Diagram](./docs/diagrams/double_booking_prevention.png)
+
 ---
 
 ## 3. Doctor Leave Conflict Handling
