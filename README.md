@@ -27,11 +27,6 @@ HealthPulse AI addresses the complete clinical lifecycle: pre-visit intake triag
 
 ## 2. End-to-End Workflow
 
-![End-to-End Clinical Workflow](./docs/diagrams/workflow_diagram.png)
-
-<details>
-<summary><b>View Mermaid Flowchart Definition</b></summary>
-
 ```mermaid
 flowchart TD
     subgraph Patient Journey
@@ -58,8 +53,6 @@ flowchart TD
         E --> P[Google Calendar & Confirmation Email]
     end
 ```
-
-</details>
 
 ---
 
@@ -149,18 +142,11 @@ HealthPulse AI solves this at the database engine layer:
 2. **ACID Transaction Write Locks:** `bookAppointment` and `holdSlot` execute inside a MongoDB transaction session (`mongoose.startSession()`). If two concurrent HTTP requests target the same doctor slot at the same millisecond, MongoDB write locking allows exactly one write and rejects the second with error `E11000`.
 3. **HTTP 409 Conflict Response:** The controller catches duplicate key collisions and returns an explicit `409 Conflict` status code.
 
-![Double-Booking Concurrency Sequence Diagram](./docs/diagrams/double_booking_prevention.png)
-
-<details>
-<summary><b>View ASCII Concurrency Lock Overview</b></summary>
-
 ```
 Patient Request A ──┐
                     ├── MongoDB Unique Index { doctor, date, timeSlot } ──→ [200 OK] Created
 Patient Request B ──┘                                                    └──→ [409 Conflict] Duplicate
 ```
-
-</details>
 
 ---
 
@@ -240,11 +226,6 @@ Calendar synchronization is implemented in [`backend/services/calendarService.js
 
 ## 9. System Architecture
 
-![HealthPulse AI System Architecture](./docs/diagrams/system_architecture.png)
-
-<details>
-<summary><b>View Mermaid Graph Definition</b></summary>
-
 ```mermaid
 graph TD
     Client[React 19 SPA] -->|REST API & Bearer JWT| AuthMiddleware[Express Auth & RBAC Middleware]
@@ -265,8 +246,6 @@ graph TD
     Cron[Node-Cron Worker] --> ReminderJobModel[ReminderJob Queue]
     ReminderJobModel --> EmailService
 ```
-
-</details>
 
 ---
 
@@ -497,7 +476,6 @@ unthinkable/
 │   ├── seed.js                      # Initial clinic database seeder
 │   └── server.js                    # Express app entrypoint
 ├── docs/
-│   ├── diagrams/                    # System architecture & sequence diagram assets
 │   └── screenshots/                 # Application visual walkthrough assets
 ├── frontend/
 │   ├── src/
@@ -506,8 +484,6 @@ unthinkable/
 │   │   ├── index.css                # Professional healthcare design system
 │   │   └── main.jsx
 │   └── package.json
-├── scripts/
-│   └── render_diagrams.js           # Automated Mermaid to image rendering utility
 ├── SYSTEM_DESIGN.md                 # In-depth system design & concurrency write-up
 └── README.md
 ```
